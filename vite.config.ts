@@ -10,4 +10,6 @@ export default defineConfig({
   },
   // three/webgpu alone is ~1.6 MB and loads lazily, after the HTML: the default 500 kB warning is noise.
   build: { chunkSizeWarningLimit: 1700 },
+  // Listen on the local network too, to test from a phone; `preview` inherits it.
+  server: { host: true },
 })

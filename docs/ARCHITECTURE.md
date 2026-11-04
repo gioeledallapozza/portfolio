@@ -49,7 +49,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 - Deploy: integrazione Git di Vercel. Push e PR → anteprima; merge su `main` → produzione.
 - GitHub Actions solo per controlli e versioni: `ci.yml` (job `ci`: lint, type-check, format:check, build) e `release.yml` (semantic-release su `main` → tag e GitHub Release).
-- La versione vive nei tag: `package.json` resta `0.0.0` e `private`, il bot non committa su `main`.
+- La versione vive nei tag: `package.json` resta `0.0.0` e `private`, il bot non committa su `main`. Configurazione in `package.json` → `release`; si parte dal tag `v0.1.0` (S-03).
 - husky + commitlint sul `commit-msg`; `dev` → `main` con merge commit, così semantic-release vede ogni commit.
 
 ## 7. Decisioni
@@ -68,6 +68,6 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 - Scena di prova `TestScene`: si toglie in S-04.
 - Un URL con ancora (`/#work`) non scorre alla sezione, perché React la disegna dopo il caricamento (F-02, S-04).
-- R3F 9.7.0 usa `THREE.Clock`, che three 0.186 segnala come deprecato: un avviso in console, finché non si aggiorna fiber.
+- R3F 9.7.0 usa `THREE.Clock`, che three 0.186 segnala come deprecato, e chiede react < 19.3 (avviso di pnpm sui peer): come nel configuratore, finché non si aggiorna fiber.
 - `/favicon.ico` dà 404: la favicon arriva con i meta in S-07.
 - R3F applica il tone mapping ACES: nel canvas l'accento esce più chiaro di `#C8FF3D`; da decidere per le card in S-06.
