@@ -24,7 +24,20 @@ L'**ordine** del lavoro. Il **cosa** è in `SPEC.md`, il **come** in `ARCHITECTU
 
 ## S-03: passi a mano di Gioele
 
-Da scrivere in S-02 (fase CI/CD).
+1. **Tag di partenza**, prima del merge che porta `release.yml` su `main`: `git tag v0.1.0 origin/main && git push origin v0.1.0`. Senza tag semantic-release parte da 1.0.0; da qui `feat` dà 0.2.0, 0.3.0…
+2. **Vercel → Add New → Project**: importa `gioeledallapozza/portfolio`. Preset Vite riconosciuto da solo (`pnpm build`, output `dist`); nessuna variabile d'ambiente oltre a quella sotto.
+   - Settings → Build and Deployment: Node.js 24.x.
+   - Settings → Environment Variables: `ENABLE_EXPERIMENTAL_COREPACK=1`, così Vercel usa il pnpm di `packageManager`.
+   - Settings → Environments: Production Branch `main`. Ogni altro push e ogni PR danno un'anteprima.
+3. **Vercel → Settings → Domains**: aggiungi `dallapozza.dev` e `www.dallapozza.dev`, con `www` che reindirizza (308) a `dallapozza.dev`. Annota i record che Vercel mostra.
+4. **Porkbun → Domain Management → dallapozza.dev → DNS**:
+   - cancella solo i record di parcheggio su `@` e `www` (ALIAS/CNAME verso `pixie.porkbun.com`) e l'eventuale URL Forwarding;
+   - aggiungi `A @` e `CNAME www` con i valori di Vercel;
+   - **non toccare** MX e TXT di Zoho (SPF, DKIM, DMARC, verifica), né i sottodomini dei progetti già pubblicati;
+   - se c'è un record CAA, deve permettere `letsencrypt.org`.
+5. **Verifica**: in Vercel i due domini sono "Valid Configuration" con certificato; `https://dallapozza.dev` si apre, `www` reindirizza; una mail di prova a gioele@dallapozza.dev arriva.
+6. **GitHub → Settings → General → Pull Requests**: lascia solo "Allow merge commits", togli squash e rebase.
+7. **GitHub → Settings → Rules → New branch ruleset**, dopo che il job `ci` ha girato almeno una volta: target `main`, Active, nessun bypass; "Require a pull request" (0 approvazioni, metodo Merge), "Require status checks" con `ci`, "Block force pushes", "Restrict deletions".
 
 ## Dopo il primo rilascio
 

@@ -16,7 +16,7 @@ Stack: React 19, TypeScript strict, React Three Fiber 9, three.js WebGPURenderer
 
 ## Comandi
 
-- `pnpm dev`: dev server; `?webgl` forza il backend WebGL2
+- `pnpm dev`: dev server, raggiungibile anche dalla rete locale (telefono); `?webgl` forza il backend WebGL2
 - `pnpm build`: typecheck + build di produzione
 - `pnpm preview`: serve la build
 - `pnpm lint`: ESLint, zero warning
