@@ -1,16 +1,16 @@
 # Architettura
 
-Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura (TO-BE: il codice non esiste ancora)
+Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura; AS-IS allo scheletro di S-02
 
 Il **come**; il **cosa** è in `SPEC.md`.
 
 ## 1. Stack e dipendenze
 
-Versioni uguali al configuratore degli orologi. Per ogni altra dipendenza si chiede.
+Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configuratore degli orologi. Per ogni altra dipendenza si chiede.
 
-- **Runtime:** react, react-dom 19.3 · three 0.186 · @react-three/fiber 9.7 · @fontsource/chakra-petch, @fontsource/geist-mono 5.3 (ultime al 2026-11-04; nel bundle si importano solo i pesi usati)
-- **Dev:** vite 8.3, @vitejs/plugin-react 6.1 · typescript 5.9 · eslint 10 con typescript-eslint e react-hooks · prettier 3.9 · husky 9 · @commitlint/cli e config-conventional 21 · semantic-release 25
-- Node in `.nvmrc`, pnpm fissato in `packageManager`.
+- **Runtime:** react, react-dom 19.3.0 · three 0.186.0 · @react-three/fiber 9.7.0 · @fontsource/chakra-petch, @fontsource/geist-mono 5.3 (ultime al 2026-11-04; nel bundle si importano solo i pesi usati)
+- **Dev:** vite 8.3.0, @vitejs/plugin-react 6.1.1 · typescript 5.9.3 · eslint 10.10.0 con typescript-eslint 8.70.0 e react-hooks 7.1.1 · prettier 3.9.7 · @types di react e three · husky 9 · @commitlint/cli e config-conventional 21 · semantic-release 25
+- Node 24 in `.nvmrc`, `pnpm@12.11.2` in `packageManager`.
 
 ## 2. Struttura
 
@@ -20,12 +20,13 @@ Versioni uguali al configuratore degli orologi. Per ogni altra dipendenza si chi
 - `src/sections.ts`: l'elenco ordinato delle sezioni `{ id, label?, Section, Scene? }`; da qui nascono nav, pagina, sezione attiva e scene del canvas
 - `src/three/`: canvas e renderer; `src/three/scenes/`: una scena per sezione (oggi Work; in v2 Configure)
 - `src/content/projects.ts`: i progetti, tipizzati
-- `src/styles/tokens.css`: palette e font; `public/projects/`: un'immagine per progetto
+- `src/styles/tokens.css`: palette e font; `base.css`: layout, solo con i token; `public/projects/`: un'immagine per progetto
 
 ## 3. Render
 
 - Un solo `<Canvas>` R3F `position: fixed` dietro la pagina (A-01). Il renderer è `WebGPURenderer` da `three/webgpu`, creato nella prop `gl` asincrona con `await renderer.init()`; con `?webgl` riceve `forceWebGL: true`. Se `init()` fallisce il canvas non si monta e Work mostra l'elenco (N-03, F-23).
-- I materiali sono node material TSL; niente drei (A-05).
+- `Stage` e le scene sono caricati con `React.lazy`: il testo HTML si disegna prima che arrivi three.js (N-01).
+- I materiali sono node material TSL; niente drei (A-05). I colori del canvas si leggono dai token CSS (N-10).
 - `eventSource` del canvas è la radice della pagina: i puntatori arrivano alla scena anche sotto l'HTML.
 - Il canvas monta la `Scene` di ogni voce di `sections.ts`; ogni scena legge a ogni frame il rettangolo della sua sezione e si sposta con lo scroll; fuori schermo non si disegna.
 - Aggiungere Configure (S-10) = un componente in `sections/`, una scena in `three/scenes/`, una riga in `sections.ts`.
@@ -65,4 +66,8 @@ Versioni uguali al configuratore degli orologi. Per ogni altra dipendenza si chi
 
 ## 8. Debito
 
-Nessuno. La scena di prova di S-02 si toglie in S-04.
+- Scena di prova `TestScene`: si toglie in S-04.
+- Un URL con ancora (`/#work`) non scorre alla sezione, perché React la disegna dopo il caricamento (F-02, S-04).
+- R3F 9.7.0 usa `THREE.Clock`, che three 0.186 segnala come deprecato: un avviso in console, finché non si aggiorna fiber.
+- `/favicon.ico` dà 404: la favicon arriva con i meta in S-07.
+- R3F applica il tone mapping ACES: nel canvas l'accento esce più chiaro di `#C8FF3D`; da decidere per le card in S-06.

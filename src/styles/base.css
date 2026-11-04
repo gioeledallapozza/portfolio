@@ -1,0 +1,53 @@
+/* src/styles/base.css */
+/* Page layout on top of the fixed 3D stage; colours and fonts only from tokens.css. */
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+a {
+  color: inherit;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 2rem;
+}
+
+.nav-logo {
+  margin-right: auto;
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-cta {
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  text-decoration: none;
+}
+
+section {
+  min-height: 100vh;
+  padding: 6rem 2rem 2rem;
+  box-sizing: border-box;
+}

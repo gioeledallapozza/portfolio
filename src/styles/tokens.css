@@ -1,0 +1,10 @@
+/* src/styles/tokens.css */
+/* The only place for colours and fonts (N-10): everything else reads these variables. */
+:root {
+  --color-bg: #0a0a0b;
+  --color-text: #ededea;
+  --color-accent: #c8ff3d;
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Geist Mono', monospace;
+  color-scheme: dark;
+}
