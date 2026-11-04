@@ -1,5 +1,15 @@
 /* src/styles/base.css */
 /* Page layout on top of the fixed 3D stage; colours and fonts only from tokens.css. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -17,37 +27,39 @@ a {
   color: inherit;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background: var(--color-text);
+}
+
 .stage {
   position: fixed;
   inset: 0;
   z-index: -1;
 }
 
-.nav {
-  position: fixed;
-  inset: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem 2rem;
-}
-
-.nav-logo {
-  margin-right: auto;
-  font-family: var(--font-display);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.nav-cta {
-  padding: 0.5rem 1rem;
-  background: var(--color-accent);
-  color: var(--color-bg);
-  text-decoration: none;
-}
-
+/* Every section fills the screen; the top padding keeps its heading clear of the fixed nav. */
 section {
-  min-height: 100vh;
+  min-height: 100svh;
   padding: 6rem 2rem 2rem;
   box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  section {
+    padding-inline: 1rem;
+  }
 }

@@ -1,9 +1,11 @@
 // vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig({
-  plugins: [react()],
+  // HTTPS in dev and preview: WebGPU needs a secure context, also on a phone over the LAN.
+  plugins: [react(), basicSsl()],
   // The 3D lives in a lazy chunk: pre-bundle it at start, or the dev optimizer re-runs on first load.
   optimizeDeps: {
     include: ['@react-three/fiber', 'three', 'three/webgpu', 'three/tsl'],

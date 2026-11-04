@@ -4,7 +4,7 @@ Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura
 
 ## 1. Scopo
 
-Portare contatti da agenzie e-commerce che cercano configuratori 3D. Sito in inglese, una pagina sola, sezioni in quest'ordine: Home, Work, About, Contact; in v2 Configure entra tra Home e Work. Stile: palette Carbon/Lime (sfondo `#0A0A0B`, testo `#EDEDEA`, accento `#C8FF3D`), Chakra Petch per i titoli, Geist Mono per il testo. Il **come** è in `ARCHITECTURE.md`, l'**ordine** in `STEPS.md`.
+Portare contatti da agenzie e-commerce che cercano configuratori 3D. Sito in inglese, una pagina sola, sezioni in quest'ordine: Home, Work, About, Contact; in v2 Configure entra tra Home e Work. Stile: palette Carbon/Lime (sfondo `#0A0A0B`, testo `#EDEDEA`, testo secondario `#8A8A86`, accento `#C8FF3D`), Chakra Petch per i titoli, Geist Mono per il testo. Il **come** è in `ARCHITECTURE.md`, l'**ordine** in `STEPS.md`.
 
 Priorità MoSCoW: **M** Must, **S** Should, **C** Could; i Won't sono al §4. **v2** = dopo il primo rilascio. Una Q aperta blocca i passi che toccano i requisiti collegati.
 

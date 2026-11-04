@@ -1,0 +1,46 @@
+/* src/styles/nav.css */
+/* Fixed top bar: translucent over the page and the 3D, active section underlined in lime (F-01, F-03). */
+.nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.nav-logo {
+  margin-right: auto;
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-link {
+  text-decoration: underline transparent 2px;
+  text-underline-offset: 6px;
+  transition: text-decoration-color 0.2s;
+}
+
+.nav-link:hover {
+  text-decoration-color: var(--color-muted);
+}
+
+.nav-link[aria-current='true'] {
+  text-decoration-color: var(--color-accent);
+}
+
+.nav .button {
+  padding: 0.5rem 1rem;
+}
+
+@media (max-width: 480px) {
+  .nav {
+    gap: 1.25rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+}

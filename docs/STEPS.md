@@ -12,15 +12,15 @@ L'**ordine** del lavoro. Il **cosa** è in `SPEC.md`, il **come** in `ARCHITECTU
 
 ## Primo rilascio
 
-| Passo | Chi                               | Obiettivo                                                                     | Requisiti                         | Q   |
-| ----- | --------------------------------- | ----------------------------------------------------------------------------- | --------------------------------- | --- |
-| S-01  | Claude Code                       | Documenti: CLAUDE.md, SPEC, ARCHITECTURE, STEPS                               | tutti                             |     |
-| S-02  | Claude Code                       | Scheletro (Vite, React, TS strict, token, canvas WebGPU/WebGL2, meta) e CI/CD | N-03, N-09, N-10, N-11, A-05…A-07 |     |
-| S-03  | Gioele                            | Vercel, dominio e regola su `main` (passi sotto)                              | A-06                              |     |
-| S-04  | Claude Code                       | Nav e Home; via la scena di prova                                             | F-01…F-04, N-04, N-06, N-07       |     |
-| S-05  | Claude Code, Gioele (immagini)    | `projects.ts` e vista elenco; descrizioni scritte insieme                     | F-23, F-25, F-26                  |     |
-| S-06  | Claude Code                       | Carosello v1                                                                  | F-20…F-22, N-02, N-04…N-06        |     |
-| S-07  | Claude Code, Gioele (immagine OG) | About, Contact e meta; misure Lighthouse                                      | F-30, F-31, N-01, N-07…N-09       |     |
+| Passo  | Chi                               | Obiettivo                                                                     | Requisiti                         | Q   |
+| ------ | --------------------------------- | ----------------------------------------------------------------------------- | --------------------------------- | --- |
+| S-01 ✓ | Claude Code                       | Documenti: CLAUDE.md, SPEC, ARCHITECTURE, STEPS                               | tutti                             |     |
+| S-02 ✓ | Claude Code                       | Scheletro (Vite, React, TS strict, token, canvas WebGPU/WebGL2, meta) e CI/CD | N-03, N-09, N-10, N-11, A-05…A-07 |     |
+| S-03 ✓ | Gioele                            | Vercel, dominio e regola su `main` (passi sotto)                              | A-06                              |     |
+| S-04 ✓ | Claude Code                       | Nav e Home; via la scena di prova                                             | F-01…F-04, N-04, N-06, N-07       |     |
+| S-05   | Claude Code, Gioele (immagini)    | `projects.ts` e vista elenco; descrizioni scritte insieme                     | F-23, F-25, F-26                  |     |
+| S-06   | Claude Code                       | Carosello v1                                                                  | F-20…F-22, N-02, N-04…N-06        |     |
+| S-07   | Claude Code, Gioele (immagine OG) | About, Contact e meta; misure Lighthouse                                      | F-30, F-31, N-01, N-07…N-09       |     |
 
 ## S-03: passi a mano di Gioele
 

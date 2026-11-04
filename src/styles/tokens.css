@@ -3,6 +3,7 @@
 :root {
   --color-bg: #0a0a0b;
   --color-text: #ededea;
+  --color-muted: #8a8a86;
   --color-accent: #c8ff3d;
   --font-display: 'Chakra Petch', sans-serif;
   --font-body: 'Geist Mono', monospace;

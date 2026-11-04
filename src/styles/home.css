@@ -1,0 +1,49 @@
+/* src/styles/home.css */
+/* Home (F-04): big name bottom-left; the typing comes from typed.css. */
+#home {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 4rem;
+}
+
+.home-name {
+  margin: 0;
+  font-size: clamp(3rem, 12vw, 10rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+/* One block per line; the clip keeps each caret inside its own line. */
+.home-line {
+  display: block;
+  overflow: hidden;
+}
+
+.home-tagline {
+  margin: 1.5rem 0 2rem;
+  color: var(--color-muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  text-wrap: balance;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Inside the lime button the caret is dark. */
+.home-actions .button {
+  --typed-caret: var(--color-bg);
+}
+
+.home-link {
+  text-decoration: none;
+}
+
+.home-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
