@@ -1,0 +1,60 @@
+# SPEC: portfolio dallapozza.dev
+
+Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura
+
+## 1. Scopo
+
+Portare contatti da agenzie e-commerce che cercano configuratori 3D. Sito in inglese, una pagina sola, sezioni in quest'ordine: Home, Work, About, Contact; in v2 Configure entra tra Home e Work. Stile: palette Carbon/Lime (sfondo `#0A0A0B`, testo `#EDEDEA`, accento `#C8FF3D`), Chakra Petch per i titoli, Geist Mono per il testo. Il **come** è in `ARCHITECTURE.md`, l'**ordine** in `STEPS.md`.
+
+Priorità MoSCoW: **M** Must, **S** Should, **C** Could; i Won't sono al §4. **v2** = dopo il primo rilascio. Una Q aperta blocca i passi che toccano i requisiti collegati.
+
+## 2. Requisiti funzionali
+
+| ID   | Requisito                                                                                                                                                                                                      | Pr.  | Verifica                                                             |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------- |
+| F-01 | Nav fissa in alto: GDP (→ Home), Work, About, pulsante "Let's talk" (→ Contact); Configure si aggiunge in v2                                                                                                   | M    | resta visibile a ogni scroll; ogni voce porta alla sua sezione       |
+| F-02 | Scroll fluido alle ancore (`#work` ecc.); un URL con ancora apre la pagina su quella sezione                                                                                                                   | M    | click sulla nav e apertura diretta di `/#work`                       |
+| F-03 | La sezione visibile è evidenziata nella nav                                                                                                                                                                    | M    | scroll lento dall'alto in basso: l'evidenza segue la sezione         |
+| F-04 | Home: nome grande con animazione d'ingresso, riga "3D product configurators for e-commerce", pulsante "See my work" (→ Work) e link "Let's talk" (→ Contact)                                                   | M    | caricamento a freddo; i due link portano alla sezione giusta         |
+| F-10 | Configure: orologio di particelle (compute WebGPU) che reagisce al cursore                                                                                                                                     | S v2 | il cursore sposta le particelle                                      |
+| F-11 | Allo scroll l'orologio si materializza nel configuratore vero del motore, nella stessa posa; il bundle del motore arriva da Cloudflare, con la versione nell'URL, solo vicino a Configure                      | S v2 | nessun salto di posa; nessuna richiesta al motore prima di Configure |
+| F-20 | Work: card attorno a una colonna invisibile, rotazione continua e infinita, card ripetute fino a riempire il giro                                                                                              | M    | nessun buco nel giro, con qualsiasi numero di progetti               |
+| F-21 | Le card si trascinano; al rilascio la rotazione riprende                                                                                                                                                       | M    | drag con mouse e touch                                               |
+| F-22 | Click su una card → zoom + pannello HTML con descrizione, tag e link; Esc o un pulsante lo chiudono                                                                                                            | M    | apertura e chiusura su ogni progetto                                 |
+| F-23 | Vista elenco HTML dei progetti, alternativa al carosello e unica vista senza 3D (N-03)                                                                                                                         | M    | stessi progetti e link del carosello                                 |
+| F-24 | Card di vetro in TSL                                                                                                                                                                                           | S v2 | resa in WebGPU e WebGL2                                              |
+| F-25 | Nuovo progetto = una voce in `src/content/projects.ts` + un'immagine, nient'altro                                                                                                                              | M    | progetto aggiunto toccando solo quei due file                        |
+| F-26 | Progetti: Pirate ship (three.js), Car configurator, Watch configurator headless, Ring configurator su Shopify dev store (password accanto al link), FFT ocean; immagini di Gioele, descrizioni scritte insieme | M    | ogni link apre il progetto                                           |
+| F-30 | About: bio e cosa offro alle agenzie, testi scritti insieme                                                                                                                                                    | M    | testo presente e leggibile                                           |
+| F-31 | Contact: gioele@dallapozza.dev, LinkedIn, GitHub, X                                                                                                                                                            | M    | ogni link apre la destinazione giusta                                |
+| F-32 | Prenotazione di una call con Zoho Bookings (da configurare)                                                                                                                                                    | S v2 | prenotazione di prova completata                                     |
+| F-40 | Luce del cursore sulla pagina                                                                                                                                                                                  | C v2 | la luce segue il cursore                                             |
+| F-41 | Minigioco nascosto: un percorso da seguire col cursore                                                                                                                                                         | C v2 | percorso completato                                                  |
+
+Link dei progetti: Pirate ship → https://pirate-ship.dallapozza.dev · Car configurator → https://porsche-gt3rs.dallapozza.dev/ · Watch configurator → https://luxury-watch.dallapozza.dev/ · Ring configurator → https://shopify-demo.dallapozza.dev/ (password: awgero) · FFT ocean → https://fftocean.dallapozza.dev/
+
+Link di Contact: LinkedIn → https://www.linkedin.com/in/gioeledallapozza/ · GitHub → https://github.com/gioeledallapozza · X → https://x.com/DallaPozzaG
+
+## 3. Requisiti non funzionali
+
+| ID   | Requisito                                                                                                                              | Pr. | Verifica                                                                                         |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------- | --- | ------------------------------------------------------------------------------------------------ |
+| N-01 | LCP < 2,5 s su mobile                                                                                                                  | M   | Lighthouse mobile sull'anteprima Vercel                                                          |
+| N-02 | 60 fps su un laptop medio con GPU integrata                                                                                            | M   | Performance di Chrome, 10 s su Work: frame medio ≤ 16,7 ms                                       |
+| N-03 | WebGPU con fallback automatico su WebGL2; `?webgl` forza WebGL2; senza nessuno dei due la pagina resta senza 3D e Work mostra l'elenco | M   | `renderer.backend.isWebGLBackend` con e senza `?webgl`; Chrome con accelerazione hardware spenta |
+| N-04 | `prefers-reduced-motion`: niente animazione d'ingresso, rotazione ferma, scroll istantaneo                                             | M   | DevTools → Rendering → emula reduced motion                                                      |
+| N-05 | Pulsante per mettere in pausa la rotazione del carosello                                                                               | M   | la rotazione si ferma e riparte                                                                  |
+| N-06 | Tutto si usa da tastiera, progetti compresi; focus sempre visibile                                                                     | M   | giro completo solo con Tab, Invio, Esc                                                           |
+| N-07 | Contrasto AA su tutto il testo                                                                                                         | M   | Lighthouse, nessun errore di contrasto                                                           |
+| N-08 | Lighthouse accessibilità ≥ 95                                                                                                          | M   | Lighthouse sull'anteprima                                                                        |
+| N-09 | SEO e Open Graph: title, description, canonical, immagine OG di Gioele (`public/og.png`, 1200×630)                                     | M   | Lighthouse SEO ≥ 95; anteprima del link su LinkedIn                                              |
+| N-10 | Palette e font come token CSS                                                                                                          | M   | nessun colore o font fuori da `tokens.css` (grep)                                                |
+| N-11 | Font self-hosted                                                                                                                       | M   | nessuna richiesta a domini esterni nel pannello Network                                          |
+
+## 4. Won't
+
+Storia raccontata come videogioco, blog, CMS, multilingua.
+
+## 5. Domande aperte
+
+Nessuna.
