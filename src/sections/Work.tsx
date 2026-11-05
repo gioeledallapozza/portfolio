@@ -1,14 +1,23 @@
 // src/sections/Work.tsx
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import '../styles/work.css'
 import { projects, type Project } from '../content/projects'
 
-// Work: the project grid (F-23) and each project's full-screen detail (F-22).
+// Work: the project grid (F-23), each project's full-screen detail (F-22) and the HTML of the carousel.
 // Every detail is a closed <dialog> already in the page, so all text is indexed and keyboard-reachable.
+
+// Opens a project's detail. Focus goes to the dialog itself, not to Close, so a mouse click leaves
+// no ring on the button; Tab reaches Close next.
+export function showDetail(id: string) {
+  const dialog = document.getElementById(`${id}-detail`) as HTMLDialogElement | null
+  dialog?.showModal()
+  dialog?.focus()
+}
 
 // Work section content.
 export function Work() {
   const grid = useRef<HTMLOListElement>(null)
+  const [paused, setPaused] = useState(false)
 
   // Marks each project the first time it comes into view; the entrance itself is in work.css.
   useEffect(() => {
@@ -34,13 +43,23 @@ export function Work() {
           <ProjectItem key={project.id} project={project} />
         ))}
       </ol>
+      {/* Carousel only (shown with data-stage="3d"): the title over a card, written by WorkScene,
+          and the pause (N-05), read by WorkScene every frame. */}
+      <p className="work-label" aria-hidden="true" />
+      <button
+        className="work-pause"
+        type="button"
+        aria-pressed={paused}
+        onClick={() => setPaused(!paused)}
+      >
+        {paused ? 'Play' : 'Pause'} rotation
+      </button>
     </>
   )
 }
 
 // One project: the card that opens the detail, and the detail itself.
 function ProjectItem({ project }: { project: Project }) {
-  const detail = useRef<HTMLDialogElement>(null)
   const titleId = `${project.id}-title`
 
   return (
@@ -49,7 +68,12 @@ function ProjectItem({ project }: { project: Project }) {
         className="work-card"
         type="button"
         aria-haspopup="dialog"
-        onClick={() => detail.current?.showModal()}
+        // With the carousel, WorkScene first flies into the card, then opens the dialog.
+        onClick={() =>
+          document.documentElement.dataset.stage === '3d'
+            ? window.dispatchEvent(new CustomEvent('work:open', { detail: project.id }))
+            : showDetail(project.id)
+        }
       >
         <span className="work-card-title">{project.title}</span>
         {/* Every image is 16:9: these only reserve the space, against layout shift. */}
@@ -63,7 +87,12 @@ function ProjectItem({ project }: { project: Project }) {
         />
       </button>
 
-      <dialog ref={detail} className="work-detail" aria-labelledby={titleId}>
+      <dialog
+        id={`${project.id}-detail`}
+        tabIndex={-1}
+        className="work-detail"
+        aria-labelledby={titleId}
+      >
         {/* Already described by the card: here it is only the backdrop. */}
         <img
           className="work-detail-image"

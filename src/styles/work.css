@@ -68,6 +68,71 @@
   }
 }
 
+/* Carousel (data-stage="3d", set by WorkScene): the grid leaves the screen but stays for screen
+   readers and Tab; horizontal drags turn the cylinder instead of scrolling the page. */
+.work-label,
+.work-pause {
+  display: none;
+}
+
+html[data-stage='3d'] #work {
+  position: relative;
+  touch-action: pan-y;
+}
+
+html[data-stage='3d'] .work-grid {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* Title over a card: WorkScene moves it to the card's top centre. */
+html[data-stage='3d'] .work-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: block;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  translate: -50% calc(-100% - 0.75rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+html[data-stage='3d'] .work-label.is-shown {
+  opacity: 1;
+}
+
+/* Keyboard focus is on a hidden button, so its ring is drawn here. */
+html[data-stage='3d'] .work-label.is-focus {
+  outline: 2px solid var(--color-accent);
+}
+
+html[data-stage='3d'] .work-pause {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  display: block;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+html[data-stage='3d'] .work-pause:hover {
+  color: var(--color-text);
+}
+
 /* Detail: the image fills the screen, darkened, with the text at the bottom.
    Image and gradient are fixed, so their overflow never scrolls the dialog. */
 .work-detail {
@@ -85,6 +150,11 @@
     opacity 0.3s,
     display 0.3s allow-discrete,
     overlay 0.3s allow-discrete;
+}
+
+/* The dialog takes the focus when it opens (showDetail): its ring would frame the whole screen. */
+.work-detail:focus-visible {
+  outline: none;
 }
 
 .work-detail[open] {
@@ -130,6 +200,11 @@ html:has(.work-detail[open]) {
 /* Opening: we enter the image. It starts sharp and full screen (where the 3D zoom ends), then
    moves closer, darkens and blurs, and the text rises. Closing only fades the dialog. */
 @starting-style {
+  /* The dialog takes the focus when it opens (showDetail): its ring would frame the whole screen. */
+  .work-detail:focus-visible {
+    outline: none;
+  }
+
   .work-detail[open] {
     opacity: 0;
   }
@@ -148,6 +223,23 @@ html:has(.work-detail[open]) {
     opacity: 0;
     transform: translateY(2rem);
   }
+}
+
+/* With the carousel the camera has already flown into the card: the detail only finishes the
+   move, without waiting on the sharp image. */
+html[data-stage='3d'] .work-detail {
+  transition-duration: 0.15s;
+}
+
+html[data-stage='3d'] .work-detail-image,
+html[data-stage='3d'] .work-detail::after {
+  transition-duration: 0.5s;
+  transition-delay: 0s;
+}
+
+html[data-stage='3d'] .work-detail form,
+html[data-stage='3d'] .work-detail-text {
+  transition-delay: 0.2s;
 }
 
 .work-detail form,
@@ -282,6 +374,7 @@ html:has(.work-detail[open]) {
 @media (prefers-reduced-motion: reduce) {
   .work-card img,
   .work-card-title,
+  .work-label,
   .work-detail,
   .work-detail *,
   .work-detail::after {

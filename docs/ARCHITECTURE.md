@@ -24,7 +24,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 ## 3. Render
 
-- Un solo `<Canvas>` R3F `position: fixed` dietro la pagina (A-01). Il renderer è `WebGPURenderer` da `three/webgpu`, creato nella prop `gl` asincrona con `await renderer.init()`; con `?webgl` riceve `forceWebGL: true`. Se `init()` fallisce il canvas non si monta e Work mostra l'elenco (N-03, F-23).
+- Un solo `<Canvas>` R3F `position: fixed` dietro la pagina (A-01). Il renderer è `WebGPURenderer` da `three/webgpu`, creato nella prop `gl` asincrona con `await renderer.init()`; con `?webgl` riceve `forceWebGL: true`. Se `init()` fallisce il canvas non si monta e Work resta la griglia (N-03, F-23). Camera con `fov` 35 a z = 10; `flat`, senza tone mapping: WebGPURenderer lo applica a tutto il frame (il `toneMapped` del materiale non conta), e le card devono avere i colori delle immagini HTML del dettaglio (F-22).
 - `Stage` e le scene sono caricati con `React.lazy`, e `Stage` si monta solo se almeno una sezione ha una `Scene`: il testo HTML si disegna prima che arrivi three.js (N-01).
 - I materiali sono node material TSL; niente drei (A-05). I colori del canvas si leggono dai token CSS (N-10).
 - `eventSource` del canvas è la radice della pagina: i puntatori arrivano alla scena anche sotto l'HTML.
@@ -41,12 +41,13 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 ## 5. Work
 
 - `projects.ts` esporta `Project { id, title, description, year, stack, image, alt, links: { label, url, password? }[] }`; `image` è `/projects/<id>.webp`, 16:9 (1600×900; car e watch 3840×2160). Carosello, griglia e dettaglio leggono solo da qui (F-25).
-- Un solo markup per le due viste: un `<ol>` con, per progetto, un `<button>` (immagine e titolo) e il suo `<dialog>` di dettaglio, chiuso ma già nella pagina: il testo è sempre indicizzabile e raggiungibile da tastiera (F-23, N-06). Si apre con `showModal()`, si chiude con Esc o un `<form method="dialog">`, senza stato React (F-22).
+- Un solo markup per le due viste: un `<ol>` con, per progetto, un `<button>` (immagine e titolo) e il suo `<dialog>` di dettaglio, chiuso ma già nella pagina: il testo è sempre indicizzabile e raggiungibile da tastiera (F-23, N-06). Si apre con `showDetail()` (`showModal()` più il focus sul dialog, così dopo un click Close non ha l'anello), si chiude con Esc o un `<form method="dialog">`, senza stato React (F-22).
 - Senza 3D l'`<ol>` è la griglia (F-23); entrata: un `IntersectionObserver` aggiunge `.is-in` a ogni progetto la prima volta che entra in vista, poi smette di osservarlo; la transizione è in CSS e con reduced motion non c'è.
-- Con il 3D: dopo `init()` e il primo frame `Stage` mette `data-stage="3d"` su `<html>`, e solo allora `work.css` nasconde la griglia alla vista; finché il 3D non c'è, o se fallisce, resta la griglia (N-03). La scritta della Home (~4 s) copre il caricamento: lo scroll non si blocca mai. I pulsanti nascosti restano per screen reader e tastiera: col focus il carosello ruota fino alla loro card e ne mostra il titolo, Invio apre il dettaglio (N-06).
-- Apertura del dettaglio in CSS (`@starting-style`, `transition-behavior: allow-discrete`): immagine nitida a schermo pieno che si avvicina, si scurisce e si sfoca, poi il testo sale; chiusura in dissolvenza; niente con reduced motion. Con il 3D la camera entra nella card finché riempie lo schermo, così l'ultimo fotogramma del canvas è il primo del dettaglio (F-22).
-- Carosello: raggio `max(R_min, N · passo / 2π)`, copie delle card = `ceil(2πR / passo)`, assegnate ai progetti a giro (F-20). L'angolo vive in un ref: `useFrame` lo avanza, il drag gli dà velocità con inerzia (F-21). Pausa e reduced motion fermano solo l'avanzamento (N-04, N-05).
-- Le card in 3D mostrano solo l'immagine; titoli e testi sono nell'HTML (A-02).
+- Con il 3D: a texture caricate `WorkScene` mette `data-stage="3d"` su `<html>`, e solo allora `work.css` nasconde la griglia alla vista; finché il 3D non c'è, o se fallisce, resta la griglia (N-03). La scritta della Home (~4 s) copre il caricamento: lo scroll non si blocca mai. I pulsanti nascosti restano per screen reader e tastiera: col focus il carosello ruota fino alla loro card e ne mostra il titolo, Invio apre il dettaglio (N-06).
+- Apertura del dettaglio in CSS (`@starting-style`, `transition-behavior: allow-discrete`): immagine nitida a schermo pieno che si avvicina, si scurisce e si sfoca, poi il testo sale; chiusura in dissolvenza; niente con reduced motion. Con il 3D la camera entra nella card finché riempie lo schermo, così l'ultimo fotogramma del canvas è il primo del dettaglio (F-22). Nel 3D la fase nitida l'ha già fatta la camera: il dettaglio salta il ritardo e dura metà.
+- Carosello (`three/scenes/WorkScene.tsx`): card piatte su un prisma; copie = `N · ceil(8 / N)`, così la sequenza non si spezza; apotema = `passo / 2 / tan(π / copie)`, con la card davanti sul piano z = 0 (F-20). Rotazione a scatti: un indice `active` e un tween di 0,35 s ogni 2 s, curve cubiche secche, niente inerzia; il drag gira il prisma e al rilascio scatta alla card più vicina (F-21). Pausa, hover, focus e reduced motion fermano gli scatti (N-04, N-05). Apertura: giro fino alla card, poi volo della camera di 0,5 s; chiusura 0,4 s.
+- `Work.tsx` e `WorkScene` parlano via DOM, senza stato condiviso: evento `work:open`, `focusin` sulla griglia, `close` dei dialog, `aria-pressed` della pausa; il titolo `.work-label` lo scrive la scena a ogni frame.
+- Le card in 3D mostrano solo l'immagine; titoli e testi sono nell'HTML (A-02). Il titolo sul vetro di S-08 dipende da Q-01.
 
 ## 6. CI/CD
 
@@ -71,4 +72,4 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 - R3F 9.7.0 usa `THREE.Clock`, che three 0.186 segnala come deprecato, e chiede react < 19.3 (avviso di pnpm sui peer): come nel configuratore, finché non si aggiorna fiber.
 - `/favicon.ico` dà 404 e `robots.txt` manca (Lighthouse SEO 92, best practices 96): arrivano con i meta in S-07.
-- R3F applica il tone mapping ACES: nel canvas l'accento esce più chiaro di `#C8FF3D`; da decidere per le card in S-06.
+- Chrome headless con WebGPU software perde il device anche con una pagina three.js minima: i test automatici del canvas usano `?webgl`; WebGPU si prova su hardware vero.

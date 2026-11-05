@@ -21,6 +21,10 @@ export function Stage() {
         // Pointer events come from the whole page, since the HTML sits on top of the canvas.
         eventSource={document.getElementById('root')!}
         eventPrefix="client"
+        // Narrow lens: the cylinder curves without fisheye. No tone mapping: the cards keep the
+        // colours of the HTML images, so the zoom into the detail has no visible seam (F-22).
+        camera={{ fov: 35, position: [0, 0, 10] }}
+        flat
         // An object, because `false` makes R3F set PCFSoftShadowMap, which WebGPURenderer no longer has.
         shadows={{ enabled: false }}
         gl={async ({ canvas }) => {

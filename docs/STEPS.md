@@ -19,7 +19,7 @@ L'**ordine** del lavoro. Il **cosa** è in `SPEC.md`, il **come** in `ARCHITECTU
 | S-03 ✓ | Gioele                            | Vercel, dominio e regola su `main` (passi sotto)                                | A-06                               |     |
 | S-04 ✓ | Claude Code                       | Nav e Home; via la scena di prova                                               | F-01…F-04, N-04, N-06, N-07        |     |
 | S-05 ✓ | Claude Code, Gioele (immagini)    | `projects.ts`, griglia e dettaglio a tutto schermo; descrizioni scritte insieme | F-22 (dettaglio), F-23, F-25, F-26 |     |
-| S-06   | Claude Code                       | Carosello v1: cilindro, hover e zoom verso il dettaglio                         | F-20…F-22, N-02, N-04…N-06         |     |
+| S-06 ✓ | Claude Code                       | Carosello v1: cilindro, hover e zoom verso il dettaglio                         | F-20…F-22, N-02, N-04…N-06         |     |
 | S-07   | Claude Code, Gioele (immagine OG) | About, Contact e meta; misure Lighthouse                                        | F-30, F-31, N-01, N-07…N-09        |     |
 
 ## S-03: passi a mano di Gioele
@@ -41,10 +41,10 @@ L'**ordine** del lavoro. Il **cosa** è in `SPEC.md`, il **come** in `ARCHITECTU
 
 ## Dopo il primo rilascio
 
-| Passo | Obiettivo                                     | Requisiti  | Q   |
-| ----- | --------------------------------------------- | ---------- | --- |
-| S-08  | Card di vetro in TSL                          | F-24, A-04 |     |
-| S-09  | Prenotazione con Zoho Bookings                | F-32       |     |
-| S-10  | Sezione Configure: particelle → configuratore | F-10, F-11 |     |
-| S-11  | Luce del cursore                              | F-40       |     |
-| S-12  | Minigioco nascosto                            | F-41       |     |
+| Passo | Obiettivo                                                                                                 | Requisiti  | Q    |
+| ----- | --------------------------------------------------------------------------------------------------------- | ---------- | ---- |
+| S-08  | Card di vetro in TSL: tinta dall'immagine, titolo sempre visibile davanti al vetro, hover lungo il raggio | F-24, A-04 | Q-01 |
+| S-09  | Prenotazione con Cal.com (account configurato, manca l'integrazione)                                      | F-32       | Q-02 |
+| S-10  | Sezione Configure: particelle → configuratore                                                             | F-10, F-11 |      |
+| S-11  | Luce del cursore                                                                                          | F-40       |      |
+| S-12  | Minigioco nascosto                                                                                        | F-41       |      |
