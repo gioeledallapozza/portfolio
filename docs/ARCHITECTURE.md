@@ -20,7 +20,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - `src/sections.ts`: l'elenco ordinato delle sezioni `{ id, label?, Section, Scene? }`; da qui nascono nav, pagina, sezione attiva e scene del canvas
 - `src/three/`: canvas, renderer e `SectionAnchor`; `src/three/scenes/`: una scena per sezione (da S-06 Work; in v2 Configure)
 - `src/content/projects.ts`: i progetti, tipizzati
-- `src/styles/tokens.css`: palette e font; `base.css`: layout comune; `nav.css`, `home.css`, `typed.css`: importati dal loro componente; solo con i token; `public/projects/`: un'immagine per progetto
+- `src/styles/tokens.css`: palette e font; `base.css`: layout comune; `nav.css`, `home.css`, `typed.css`, `work.css`: importati dal loro componente; solo con i token; `public/projects/<id>.webp`: un'immagine 16:9 per progetto
 
 ## 3. Render
 
@@ -40,11 +40,11 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 ## 5. Work
 
-- `projects.ts` esporta `Project { id, title, description, tags, image, links: { label, url, password? }[] }`. Carosello, elenco e pannello leggono solo da qui (F-25).
-- Carosello: copie delle card = `ceil(2πR / passo)`, assegnate ai progetti a giro (F-20). L'angolo vive in un ref: `useFrame` lo avanza, il drag gli dà velocità con inerzia (F-21). Pausa e reduced motion fermano solo l'avanzamento (N-04, N-05).
+- `projects.ts` esporta `Project { id, title, description, year, stack, image, alt, links: { label, url, password? }[] }`; `image` è `/projects/<id>.webp`, 16:9 (1600×900; car e watch 3840×2160). Carosello, griglia e dettaglio leggono solo da qui (F-25).
+- Un solo markup per le due viste: un `<ol>` con, per progetto, un `<button>` (immagine e titolo) e il suo `<dialog>` di dettaglio, chiuso ma già nella pagina: il testo è sempre indicizzabile e raggiungibile da tastiera (F-23, N-06). Si apre con `showModal()`, si chiude con Esc o un `<form method="dialog">`, senza stato React (F-22).
+- Senza 3D l'`<ol>` è la griglia (F-23); entrata: un `IntersectionObserver` aggiunge `.is-in` a ogni progetto la prima volta che entra in vista, poi smette di osservarlo; la transizione è in CSS e con reduced motion non c'è. Con il 3D si nasconde alla vista e il click su una card apre lo stesso `<dialog>` dopo lo zoom; come restano i pulsanti per la tastiera si decide in S-06.
+- Carosello: raggio `max(R_min, N · passo / 2π)`, copie delle card = `ceil(2πR / passo)`, assegnate ai progetti a giro (F-20). L'angolo vive in un ref: `useFrame` lo avanza, il drag gli dà velocità con inerzia (F-21). Pausa e reduced motion fermano solo l'avanzamento (N-04, N-05).
 - Le card in 3D mostrano solo l'immagine; titoli e testi sono nell'HTML (A-02).
-- Click su una card: la camera si avvicina e si apre un `<dialog>` HTML; Esc lo chiude nativamente (F-22).
-- Una lista di pulsanti HTML, uno per progetto, dà l'accesso da tastiera (N-06); resa visibile è la vista elenco (F-23).
 
 ## 6. CI/CD
 

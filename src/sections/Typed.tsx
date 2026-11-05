@@ -17,7 +17,7 @@ export function timeline(parts: { text: string; speed: number; pause: number }[]
   let clock = 0
   return parts.map(({ text, speed, pause }) => {
     const start = clock + pause
-    clock = start + [...text].length * speed
+    clock = start + [...text].length * speed // Use [...text] because Javascript count in a strange way the accented characters
     return { text, start, speed, end: clock }
   })
 }
@@ -36,6 +36,7 @@ export function Typed({ text, start, speed }: TypedText) {
       >
         {char}
       </span>
+      // Example: <span class="typed" style="--at: 1100ms; --speed: 50ms; --done: 1150ms">c</span>
     ),
   )
 }
