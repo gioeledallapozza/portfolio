@@ -1,0 +1,73 @@
+/* src/styles/typed.css */
+/* Typewriter: each character is transparent until its turn, its background is the caret meanwhile; nothing runs with reduced motion (N-04). */
+@media (prefers-reduced-motion: no-preference) {
+  .typed {
+    animation:
+      typed-hidden var(--done) linear,
+      typed-caret var(--speed) steps(1, end) var(--at);
+  }
+
+  .caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.9em;
+    margin-left: 0.05em;
+    vertical-align: -0.1em;
+    background: var(--typed-caret, var(--color-text));
+    visibility: hidden;
+    animation:
+      typed-show 0s var(--at) forwards,
+      caret-blink 1s steps(1) var(--at) infinite;
+  }
+
+  .caret-moves {
+    animation:
+      typed-show 0s var(--at) forwards,
+      caret-blink 1s steps(1) var(--at) infinite,
+      typed-hide 0s var(--until) forwards;
+  }
+
+  /* Elements that appear when their text starts, such as the button boxes. */
+  .typed-box {
+    visibility: hidden;
+    animation: typed-show 0s var(--at) forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    display: none;
+  }
+}
+
+@keyframes typed-hidden {
+  from,
+  to {
+    color: transparent;
+  }
+}
+
+@keyframes typed-caret {
+  from,
+  to {
+    background: var(--typed-caret, var(--color-text));
+  }
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes typed-show {
+  to {
+    visibility: visible;
+  }
+}
+
+@keyframes typed-hide {
+  to {
+    visibility: hidden;
+  }
+}

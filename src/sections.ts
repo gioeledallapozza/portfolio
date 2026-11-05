@@ -1,5 +1,5 @@
 // src/sections.ts
-import { lazy, type ComponentType } from 'react'
+import type { ComponentType } from 'react'
 import { About } from './sections/About'
 import { Contact } from './sections/Contact'
 import { Home } from './sections/Home'
@@ -13,18 +13,13 @@ export interface SectionEntry {
   id: string
   label?: string
   Section: ComponentType
+  // Always a React.lazy component, so three.js stays out of the initial bundle (N-01).
   Scene?: ComponentType
 }
 
 export const sections: SectionEntry[] = [
   { id: 'home', Section: Home },
-  {
-    id: 'work',
-    label: 'Work',
-    Section: Work,
-    // Lazy, so three.js stays out of the initial bundle (N-01).
-    Scene: lazy(() => import('./three/scenes/TestScene').then((m) => ({ default: m.TestScene }))),
-  },
+  { id: 'work', label: 'Work', Section: Work },
   { id: 'about', label: 'About', Section: About },
   { id: 'contact', Section: Contact },
 ]

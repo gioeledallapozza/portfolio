@@ -9,23 +9,23 @@ Il **come**; il **cosa** è in `SPEC.md`.
 Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configuratore degli orologi. Per ogni altra dipendenza si chiede.
 
 - **Runtime:** react, react-dom 19.3.0 · three 0.186.0 · @react-three/fiber 9.7.0 · @fontsource/chakra-petch, @fontsource/geist-mono 5.3 (ultime al 2026-11-04; nel bundle si importano solo i pesi usati)
-- **Dev:** vite 8.3.0, @vitejs/plugin-react 6.1.1 · typescript 5.9.3 · eslint 10.10.0 con typescript-eslint 8.70.0 e react-hooks 7.1.1 · prettier 3.9.7 · @types di react e three · husky 9 · @commitlint/cli e config-conventional 21 · semantic-release 25
+- **Dev:** vite 8.3.0, @vitejs/plugin-react 6.1.1 · typescript 5.9.3 · eslint 10.10.0 con typescript-eslint 8.70.0 e react-hooks 7.1.1 · prettier 3.9.7 · @vitejs/plugin-basic-ssl 2.3.0 (HTTPS in sviluppo, per WebGPU dal telefono) · @types di react e three · husky 9 · @commitlint/cli e config-conventional 21 · semantic-release 25
 - Node 24 in `.nvmrc`, `pnpm@12.11.2` in `packageManager`.
 
 ## 2. Struttura
 
 - `index.html`: meta, Open Graph, `lang="en"`
 - `src/main.tsx`, `src/App.tsx`: ingresso, sezioni HTML e canvas
-- `src/sections/`: un componente per sezione (Home, Work, About, Contact) e la nav
+- `src/sections/`: un componente per sezione (Home, Work, About, Contact), la nav, `useActiveSection` e `Typed`
 - `src/sections.ts`: l'elenco ordinato delle sezioni `{ id, label?, Section, Scene? }`; da qui nascono nav, pagina, sezione attiva e scene del canvas
-- `src/three/`: canvas e renderer; `src/three/scenes/`: una scena per sezione (oggi Work; in v2 Configure)
+- `src/three/`: canvas, renderer e `SectionAnchor`; `src/three/scenes/`: una scena per sezione (da S-06 Work; in v2 Configure)
 - `src/content/projects.ts`: i progetti, tipizzati
-- `src/styles/tokens.css`: palette e font; `base.css`: layout, solo con i token; `public/projects/`: un'immagine per progetto
+- `src/styles/tokens.css`: palette e font; `base.css`: layout comune; `nav.css`, `home.css`, `typed.css`, `work.css`: importati dal loro componente; solo con i token; `public/projects/<id>.webp`: un'immagine 16:9 per progetto
 
 ## 3. Render
 
 - Un solo `<Canvas>` R3F `position: fixed` dietro la pagina (A-01). Il renderer è `WebGPURenderer` da `three/webgpu`, creato nella prop `gl` asincrona con `await renderer.init()`; con `?webgl` riceve `forceWebGL: true`. Se `init()` fallisce il canvas non si monta e Work mostra l'elenco (N-03, F-23).
-- `Stage` e le scene sono caricati con `React.lazy`: il testo HTML si disegna prima che arrivi three.js (N-01).
+- `Stage` e le scene sono caricati con `React.lazy`, e `Stage` si monta solo se almeno una sezione ha una `Scene`: il testo HTML si disegna prima che arrivi three.js (N-01).
 - I materiali sono node material TSL; niente drei (A-05). I colori del canvas si leggono dai token CSS (N-10).
 - `eventSource` del canvas è la radice della pagina: i puntatori arrivano alla scena anche sotto l'HTML.
 - Il canvas monta la `Scene` di ogni voce di `sections.ts`; ogni scena legge a ogni frame il rettangolo della sua sezione e si sposta con lo scroll; fuori schermo non si disegna.
@@ -33,17 +33,20 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 ## 4. Pagina
 
-- Scroll fluido con `scroll-behavior: smooth` in CSS, tolto con `prefers-reduced-motion` (F-02, N-04).
-- Sezione attiva con un `IntersectionObserver` sulle sezioni (F-03).
-- Animazione d'ingresso della Home in CSS (F-04).
+- Scroll fluido con `scroll-behavior: smooth` in CSS, tolto con `prefers-reduced-motion` (F-02, N-04). Il `padding-top` delle sezioni tiene i titoli sotto la nav.
+- Un URL con ancora: dopo il primo render `App` porta la sezione in vista con `scrollIntoView` istantaneo, perché prima la sezione non esiste (F-02).
+- Sezione attiva con `useActiveSection`: un `IntersectionObserver` ridotto con `rootMargin` a una linea al centro dello schermo; il link di quella sezione riceve `aria-current` (F-03).
+- Animazione d'ingresso della Home a macchina da scrivere, in CSS e solo con `prefers-reduced-motion: no-preference` (F-04, N-04): `Typed` divide il testo in uno `<span>` per carattere con il suo turno in variabili CSS; il carattere è trasparente fino al turno e intanto il suo sfondo è il cursore a blocco. Chrome conta il testo trasparente come già disegnato, quindi l'LCP non aspetta la fine (N-01). Niente pseudo-elementi: accanto a loro Chrome toglie gli spazi dal nome accessibile.
 
 ## 5. Work
 
-- `projects.ts` esporta `Project { id, title, description, tags, image, links: { label, url, password? }[] }`. Carosello, elenco e pannello leggono solo da qui (F-25).
-- Carosello: copie delle card = `ceil(2πR / passo)`, assegnate ai progetti a giro (F-20). L'angolo vive in un ref: `useFrame` lo avanza, il drag gli dà velocità con inerzia (F-21). Pausa e reduced motion fermano solo l'avanzamento (N-04, N-05).
+- `projects.ts` esporta `Project { id, title, description, year, stack, image, alt, links: { label, url, password? }[] }`; `image` è `/projects/<id>.webp`, 16:9 (1600×900; car e watch 3840×2160). Carosello, griglia e dettaglio leggono solo da qui (F-25).
+- Un solo markup per le due viste: un `<ol>` con, per progetto, un `<button>` (immagine e titolo) e il suo `<dialog>` di dettaglio, chiuso ma già nella pagina: il testo è sempre indicizzabile e raggiungibile da tastiera (F-23, N-06). Si apre con `showModal()`, si chiude con Esc o un `<form method="dialog">`, senza stato React (F-22).
+- Senza 3D l'`<ol>` è la griglia (F-23); entrata: un `IntersectionObserver` aggiunge `.is-in` a ogni progetto la prima volta che entra in vista, poi smette di osservarlo; la transizione è in CSS e con reduced motion non c'è.
+- Con il 3D: dopo `init()` e il primo frame `Stage` mette `data-stage="3d"` su `<html>`, e solo allora `work.css` nasconde la griglia alla vista; finché il 3D non c'è, o se fallisce, resta la griglia (N-03). La scritta della Home (~4 s) copre il caricamento: lo scroll non si blocca mai. I pulsanti nascosti restano per screen reader e tastiera: col focus il carosello ruota fino alla loro card e ne mostra il titolo, Invio apre il dettaglio (N-06).
+- Apertura del dettaglio in CSS (`@starting-style`, `transition-behavior: allow-discrete`): immagine nitida a schermo pieno che si avvicina, si scurisce e si sfoca, poi il testo sale; chiusura in dissolvenza; niente con reduced motion. Con il 3D la camera entra nella card finché riempie lo schermo, così l'ultimo fotogramma del canvas è il primo del dettaglio (F-22).
+- Carosello: raggio `max(R_min, N · passo / 2π)`, copie delle card = `ceil(2πR / passo)`, assegnate ai progetti a giro (F-20). L'angolo vive in un ref: `useFrame` lo avanza, il drag gli dà velocità con inerzia (F-21). Pausa e reduced motion fermano solo l'avanzamento (N-04, N-05).
 - Le card in 3D mostrano solo l'immagine; titoli e testi sono nell'HTML (A-02).
-- Click su una card: la camera si avvicina e si apre un `<dialog>` HTML; Esc lo chiude nativamente (F-22).
-- Una lista di pulsanti HTML, uno per progetto, dà l'accesso da tastiera (N-06); resa visibile è la vista elenco (F-23).
 
 ## 6. CI/CD
 
@@ -66,8 +69,6 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 ## 8. Debito
 
-- Scena di prova `TestScene`: si toglie in S-04.
-- Un URL con ancora (`/#work`) non scorre alla sezione, perché React la disegna dopo il caricamento (F-02, S-04).
 - R3F 9.7.0 usa `THREE.Clock`, che three 0.186 segnala come deprecato, e chiede react < 19.3 (avviso di pnpm sui peer): come nel configuratore, finché non si aggiorna fiber.
-- `/favicon.ico` dà 404: la favicon arriva con i meta in S-07.
+- `/favicon.ico` dà 404 e `robots.txt` manca (Lighthouse SEO 92, best practices 96): arrivano con i meta in S-07.
 - R3F applica il tone mapping ACES: nel canvas l'accento esce più chiaro di `#C8FF3D`; da decidere per le card in S-06.
