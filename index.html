@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="is-loading">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,6 +13,93 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <!-- Tokens before the first frame: the loader below paints with them (N-10). -->
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <!-- The loader's font, fetched with the HTML instead of after the JavaScript; the CSS of
+         @fontsource points to the same file, so it downloads once. -->
+    <link
+      rel="preload"
+      href="/node_modules/@fontsource/chakra-petch/files/chakra-petch-latin-600-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <!-- Loading screen (F-05): inline, so it is on screen before any JavaScript; src/loader/loader.ts runs it. -->
+    <style>
+      /* No background on html: the body's must spread to the canvas root, or it covers the
+         stage, which sits at z-index -1. */
+      html {
+        scrollbar-gutter: stable;
+      }
+      html.is-loading {
+        overflow: hidden;
+      }
+      .loader {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-content: center;
+        background: var(--color-bg);
+        color: var(--color-accent);
+      }
+      .loader-box {
+        width: min(32rem, 100vw - 4rem);
+      }
+      .loader-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 0.75rem;
+      }
+      .loader-word {
+        font: 600 1.5rem/1 var(--font-display);
+        letter-spacing: 0.12em;
+      }
+      .loader-value {
+        font: 1rem/1 var(--font-body);
+        font-variant-numeric: tabular-nums;
+      }
+      .loader-frame {
+        position: relative;
+        padding: 0.375rem 0.75rem;
+      }
+      .loader-frame::before,
+      .loader-frame::after {
+        content: '';
+        position: absolute;
+        inset-block: 0;
+        width: 0.5rem;
+        border: 2px solid var(--color-muted);
+      }
+      .loader-frame::before {
+        left: 0;
+        border-right: 0;
+      }
+      .loader-frame::after {
+        right: 0;
+        border-left: 0;
+      }
+      /* Segments as a repeated gradient: `round` fits a whole number of them in any width. */
+      .loader-bar,
+      .loader-bar::before {
+        --pitch: 10px;
+        height: 1.25rem;
+        background: linear-gradient(90deg, transparent 20%, var(--segment) 0 80%, transparent 0) 0
+          0 / var(--pitch) 100% round;
+      }
+      .loader-bar {
+        --segment: color-mix(in srgb, var(--color-accent) 20%, transparent);
+        position: relative;
+      }
+      .loader-bar::before {
+        --segment: var(--color-accent);
+        content: '';
+        position: absolute;
+        inset: 0;
+        clip-path: inset(0 calc(100% - var(--fill, 0) * 100%) 0 0);
+      }
+    </style>
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dallapozza.dev/" />
     <meta property="og:site_name" content="Gioele Dalla Pozza" />
@@ -34,7 +121,25 @@
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <div id="root"></div>
+    <div
+      id="loader"
+      class="loader"
+      role="progressbar"
+      aria-label="Loading"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <div class="loader-box">
+        <div class="loader-head" aria-hidden="true">
+          <span class="loader-word">LOADING</span>
+          <span class="loader-value">000%</span>
+        </div>
+        <div class="loader-frame"><div class="loader-bar"></div></div>
+      </div>
+    </div>
+    <!-- The page is built under the loader, out of reach until it has gone. -->
+    <div id="root" inert></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

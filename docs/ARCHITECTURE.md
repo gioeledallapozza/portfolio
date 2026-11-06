@@ -1,6 +1,6 @@
 # Architettura
 
-Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b)
+Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b) · 2026-11-06: A-10 e loader (S-14)
 
 Il **come**, solo ciò che il codice da solo non spiega: valori, durate, formule e nomi vivono nel codice. Il **cosa** è in `SPEC.md`.
 
@@ -17,10 +17,15 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - `src/sections.ts`: l'elenco ordinato delle sezioni, da cui nascono nav, pagina, sezione attiva e scene del canvas; aggiungere Configure = un componente in `sections/`, una scena in `three/scenes/`, una riga qui.
 - `src/content/projects.ts`: unica fonte dei progetti (testi, link, stack); un'immagine 16:9 per progetto in `public/projects/`.
 - `src/styles/tokens.css`: unica fonte di colori e font, letta anche dal canvas; ogni altro CSS è importato dal suo componente.
+- `src/loader/`: `phases.ts` raccoglie le fasi pesate, `loader.ts` è la schermata; una cosa nuova da attendere (il configuratore in v2) è un `addPhase` dove si carica, senza toccare il loader. `src/motion/`: funzioni di movimento pure, condivise da HTML e canvas (A-10).
 - `src/three/`: `tsl/` blocchi TSL puri (forma, rumore, colore), da riusare per le particelle in v2; `materials/` factory che li compongono e restituiscono materiale e uniform tipizzati; `textures/` texture disegnate su canvas 2D; `scenes/<sezione>/` cosa c'è in scena e il collegamento con l'HTML, col movimento in un hook a parte (`useCarousel`), così si legge senza la scena; `inspector/` solo in sviluppo (`?inspector`, import dinamico fuori dalla build), unica eccezione a N-10.
 
 ## 3. Render
 
+- Il loader è HTML statico con lo stile inline, così è a schermo prima del JavaScript; `tokens.css` è linkato da `index.html` e il woff2 di Chakra Petch è in preload, così colori e font del loader sono pronti al primo frame (N-10).
+- Le fasi si registrano al caricamento dei moduli: il totale è noto dal primo frame, quindi la percentuale vera non torna indietro; quella mostrata la insegue ma non arriva a 100 prima del tempo minimo.
+- La scena si compila sotto il loader con `compileAsync`, mostrata tutta solo per quella chiamata: fuori schermo è nascosta, three salterebbe shader e texture e li pagherebbe all'arrivo su Work.
+- Se scade il tempo massimo lo stage si smonta: meglio la griglia per tutta la visita del carosello che la sostituisce sotto gli occhi (F-23).
 - Il canvas e le scene arrivano con `React.lazy`, e solo se una sezione ha una scena: il testo HTML si disegna prima di three.js (N-01).
 - Se `renderer.init()` fallisce il canvas non si monta e Work resta la griglia (N-03).
 - Niente tone mapping: WebGPURenderer lo applica a tutto il frame, e le card devono avere i colori delle immagini HTML del dettaglio.
@@ -29,10 +34,10 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 
 ## 4. Pagina e Work
 
-- Un URL con ancora scorre dopo il primo render, perché prima la sezione non esiste.
-- `Typed`: il testo trasparente conta già come disegnato, quindi l'LCP non aspetta la fine (N-01); niente pseudo-elementi, perché Chrome toglierebbe gli spazi dal nome accessibile. Le animazioni restano in pausa finché la sezione non entra in vista (`entered`), così i ritardi partono da lì e un unico `Typed` serve ogni sezione (F-34).
+- Un URL con ancora scorre sotto il loader, prima dell'uscita, così le fette scoprono già quella sezione.
+- `Typed`: il testo trasparente conta già come disegnato, quindi l'LCP non aspetta la fine (N-01); niente pseudo-elementi, perché Chrome toglierebbe gli spazi dal nome accessibile. Le animazioni restano in pausa finché la sezione non entra in vista (`entered`, mai prima che il loader sia uscito), così i ritardi partono da lì e un unico `Typed` serve ogni sezione (F-34).
 - Un solo markup per griglia e carosello: per progetto un `<button>` e un `<dialog>` chiuso, sempre nella pagina, così il testo resta indicizzabile e raggiungibile da tastiera anche col 3D (N-06).
-- La griglia è la vista di partenza e la scena la nasconde solo a texture caricate: se il 3D fallisce resta la griglia. La scritta della Home copre il caricamento, e lo scroll non si blocca mai.
+- La griglia è la vista di partenza e la scena la sostituisce sotto il loader, a scena pronta: se il 3D fallisce o non arriva in tempo resta la griglia. Finché il loader copre, la pagina è `inert` e lo scroll è bloccato, così focus e scroll non finiscono in una pagina che non si vede.
 - `Work.tsx` e la scena parlano via DOM (eventi, focus, attributi), senza stato React condiviso.
 - Con pochi progetti le card si ripetono fino a riempire il giro, così la sequenza non si spezza.
 - La camera entra nella card finché riempie lo schermo: l'ultimo fotogramma del canvas è il primo del dettaglio.
@@ -50,6 +55,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - **A-07** Versioni con semantic-release, solo tag e GitHub Release: `package.json` resta `0.0.0` e il bot non committa su `main`.
 - **A-08** Scroll fluido in CSS, senza librerie.
 - **A-09** Prima di entrare nel portfolio il motore del configuratore diventa un pacchetto npm, nel suo repo, importato in modo dinamico solo vicino a Configure: niente embed, niente dissolvenza tra due canvas, niente file generati nel repo.
+- **A-10** Il movimento del sito è fatto di tre effetti, ognuno sempre per le stesse cose, così ogni effetto dice che tipo di cosa sta succedendo: scrittura a macchina per i testi HTML, glitch di caratteri per i testi "di sistema" (loader, titoli sulle card), fette di vetro per i passaggi di scena (uscita del loader, apertura e ingresso delle card).
 
 ## 6. Debito
 

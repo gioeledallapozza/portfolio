@@ -37,7 +37,8 @@ Lint, type-check e format:check devono passare prima di ogni commit.
 - Ogni requisito ha un ID (F-, N-), una priorità MoSCoW e un criterio di verifica; decisioni A-, passi S-, domande Q-.
 - Niente codice né dipendenze senza un ID dello SPEC: ciò che manca si propone come requisito.
 - Quando cambi un comportamento descritto in un `.md`, aggiorni il `.md` nello stesso commit.
-- SPEC ≤ 50 righe (solo il cosa), ARCHITECTURE ≤ 60 (solo il perché), STEPS ≤ 35: valori, durate e nomi vivono nel codice, e ogni cosa ha una sola fonte.
+- Documenti sintetici: un requisito è una riga, con una frase e una verifica breve; valori, durate e nomi vivono nel codice, e ogni cosa ha una sola fonte.
+- SPEC solo il cosa, ARCHITECTURE solo il perché. Righe indicative: SPEC ~70, ARCHITECTURE ~80, STEPS ~40; si superano solo se i requisiti lo richiedono.
 
 ## Git
 

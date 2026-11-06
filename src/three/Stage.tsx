@@ -1,12 +1,14 @@
 // src/three/Stage.tsx
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { WebGPURenderer } from 'three/webgpu'
+import { DefaultLoadingManager, WebGPURenderer } from 'three/webgpu'
+import { timedOut } from '../loader/loader'
+import type { Phase } from '../loader/phases'
 import { sections } from '../sections'
 import { SectionAnchor } from './SectionAnchor'
 
 // The single canvas behind the page (A-01). three falls back to WebGL2 by itself when WebGPU
-// is missing; `?webgl` forces it. With no backend at all the stage unmounts (N-03).
+// is missing; `?webgl` forces it. With no backend at all, or past the loader's time limit, it unmounts.
 
 const query = new URLSearchParams(window.location.search)
 const forceWebGL = query.has('webgl')
@@ -17,10 +19,40 @@ const InspectorPanel =
     ? lazy(() => import('./inspector/InspectorPanel'))
     : null
 
+const sceneCount = sections.filter((section) => section.Scene).length
+const compiled = new Set<string>()
+
+// The loader's phases this stage reports (F-05).
+interface StageProps {
+  textures: Phase
+  compile: Phase
+}
+
 // Fixed canvas that mounts the scene of every section that has one.
-export function Stage() {
-  const [failed, setFailed] = useState(false)
-  if (failed) return null
+export function Stage({ textures, compile }: StageProps) {
+  const [off, setOff] = useState(false)
+
+  // Past the loader's time limit the grid stays for the whole visit: no swap under the user's eyes (F-23).
+  useEffect(() => {
+    void timedOut.then(() => setOff(true))
+  }, [])
+
+  // Every scene texture goes through three's default manager: its count is the loader's share.
+  useEffect(() => {
+    DefaultLoadingManager.onProgress = (_url, loaded, total) => textures.report(loaded / total)
+  }, [textures])
+
+  const onCompiled = useCallback(
+    (id: string) => {
+      compiled.add(id)
+      compile.report(compiled.size / sceneCount)
+      // A scene without textures leaves the manager silent.
+      if (compiled.size === sceneCount) textures.report(1)
+    },
+    [compile, textures],
+  )
+
+  if (off) return null
 
   return (
     <div className="stage">
@@ -44,7 +76,10 @@ export function Stage() {
           try {
             await renderer.init()
           } catch (error) {
-            setFailed(true)
+            // Nothing more to wait for: the loader leaves on the fonts alone (N-03).
+            textures.skip()
+            compile.skip()
+            setOff(true)
             throw error
           }
           if (import.meta.env.DEV) {
@@ -57,10 +92,8 @@ export function Stage() {
         {sections.map(
           ({ id, Scene }) =>
             Scene && (
-              <SectionAnchor key={id} id={id}>
-                <Suspense fallback={null}>
-                  <Scene />
-                </Suspense>
+              <SectionAnchor key={id} id={id} onCompiled={onCompiled}>
+                <Scene />
               </SectionAnchor>
             ),
         )}
