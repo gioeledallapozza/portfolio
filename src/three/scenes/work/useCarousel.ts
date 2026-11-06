@@ -39,6 +39,7 @@ const progress = ({ start, duration }: Tween, now: number) =>
 
 // Size of the prism, computed by WorkScene from the screen.
 export interface CarouselLayout {
+  projects: number
   copies: number
   step: number // angle between two cards
   axis: 'x' | 'y' // what the prism turns around
@@ -59,7 +60,7 @@ interface CarouselOptions {
 
 // The prism's motion; returns its group ref, its live state and the actions WorkScene calls.
 export function useCarousel(
-  { copies, step, axis, width, height }: CarouselLayout,
+  { projects, copies, step, axis, width, height }: CarouselLayout,
   { scrolled, entered, enterDelay, onOpened }: CarouselOptions,
 ) {
   const viewport = useThree((state) => state.viewport)
@@ -91,31 +92,50 @@ export function useCarousel(
   // Where the camera rests (Stage's position).
   const home = useRef<Vector3>(null)
 
-  // Squares the prism to the given card with a short, hard turn.
-  const go = (active: number) => {
-    const m = motion.current
-    const duration = reducedMotion.matches ? 0 : TURN
-    m.turn = { from: m.angle, to: -active * step, start: m.now, duration }
-    m.active = active
+  // How far the prism must turn to bring a card to the front, the short way round.
+  const turnTo = (copy: number) =>
+    MathUtils.euclideanModulo(-copy * step - motion.current.angle + Math.PI, 2 * Math.PI) - Math.PI
+
+  // The copy of a project nearest to the front, for opening it from the keyboard.
+  const nearest = (projectIndex: number) => {
+    let best = projectIndex
+    for (let copy = projectIndex; copy < copies; copy += projects) {
+      if (Math.abs(turnTo(copy)) < Math.abs(turnTo(best))) best = copy
+    }
+    return best
   }
 
-  // Turns to the project, then flies into it.
-  const open = (projectIndex: number) => {
+  // Squares the prism to the given card with a short, hard turn.
+  const go = (copy: number) => {
     const m = motion.current
+    const duration = reducedMotion.matches ? 0 : TURN
+    m.turn = { from: m.angle, to: m.angle + turnTo(copy), start: m.now, duration }
+    m.active = copy
+  }
+
+  // Turns to the card (the one clicked, or the project's nearest copy), then flies into it.
+  const open = (projectIndex: number, copy = nearest(projectIndex)) => {
+    const m = motion.current
+    // Only from rest: with a detail open, a click on it (Close too) also reaches the scene, whose
+    // card fills the screen behind it; opening again then would race the close.
+    if (m.phase !== 'idle') return
     m.opening = projectIndex
+    m.openCopy = copy
     if (reducedMotion.matches) {
       onOpened(projectIndex)
       m.phase = 'open'
       return
     }
     // Square to the card first: following the scroll, the prism can rest between two.
-    if (Math.abs(m.angle + projectIndex * step) > 1e-4) go(projectIndex)
-    m.openCopy = projectIndex
+    if (Math.abs(turnTo(copy)) > 1e-4) go(copy)
     m.phase = 'opening'
   }
 
+  // Back out from wherever the camera is, even halfway through another move.
   const close = () => {
-    motion.current.phase = 'closing'
+    const m = motion.current
+    m.camera = null
+    m.phase = 'closing'
   }
 
   // Keyboard focus on a project's button: WorkScene scrolls to it, its card lifts.
@@ -154,11 +174,6 @@ export function useCarousel(
       m.angle = MathUtils.lerp(from, to, easeInOut(progress(m.turn, m.now)))
     }
     group.rotation.set(axis === 'x' ? m.angle : 0, axis === 'y' ? m.angle : 0, 0)
-
-    // The cards move under a still mouse, which fires no pointer event: raycast again from where it
-    // last was, so hover follows the card that is under it now.
-    if (Math.abs(m.angle - before) > 1e-5 || window.scrollY !== m.scrollY) events.update?.()
-    m.scrollY = window.scrollY
 
     // Entrance (F-35): the front card lights up once the title is typed, the others after it; with
     // reduced motion every card is on from the start.
@@ -216,6 +231,7 @@ export function useCarousel(
         ease: easeOut,
       }
     }
+    const flying = m.camera !== null
     if (m.camera) {
       const t = progress(m.camera, m.now)
       const eased = m.camera.ease(t)
@@ -225,9 +241,22 @@ export function useCarousel(
       if (t === 1) {
         m.camera = null
         if (m.phase === 'opening') onOpened(m.opening)
+        // Back from the detail, WorkScene has scrolled to the project: every copy of it looks the
+        // same, so the prism takes the scroll's angle for it without turning (F-20).
+        else m.angle = -m.opening * step
         m.phase = m.phase === 'opening' ? 'open' : 'idle'
       }
     }
+
+    // The cards move under a still mouse, which fires no pointer event: when the prism turns, the
+    // page scrolls or the camera flies, raycast again from where the mouse last was, so hover
+    // follows what is under it now. After a detail closes, Close sits outside the card again.
+    if (flying || Math.abs(m.angle - before) > 1e-5 || window.scrollY !== m.scrollY) {
+      camera.updateMatrixWorld()
+      group.updateMatrixWorld()
+      events.update?.()
+    }
+    m.scrollY = window.scrollY
   })
 
   return { prism, cards, motion, open, close, focus, blur, hover }

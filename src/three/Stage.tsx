@@ -5,7 +5,7 @@ import { DefaultLoadingManager, WebGPURenderer } from 'three/webgpu'
 import { timedOut } from '../loader/loader'
 import type { Phase } from '../loader/phases'
 import { sections } from '../sections'
-import { SectionAnchor } from './SectionAnchor'
+import { CAMERA, SectionAnchor } from './SectionAnchor'
 
 // The single canvas behind the page (A-01). three falls back to WebGL2 by itself when WebGPU
 // is missing; `?webgl` forces it. With no backend at all, or past the loader's time limit, it unmounts.
@@ -62,7 +62,7 @@ export function Stage({ textures, compile }: StageProps) {
         eventPrefix="client"
         // Narrow lens: the prism curves without fisheye. No tone mapping: the cards keep the
         // colours of the HTML images, so the zoom into the detail has no visible seam (F-22).
-        camera={{ fov: 35, position: [0, 0, 10] }}
+        camera={{ fov: CAMERA.fov, position: [0, 0, CAMERA.distance] }}
         flat
         // An object, because `false` makes R3F set PCFSoftShadowMap, which WebGPURenderer no longer has.
         shadows={{ enabled: false }}
