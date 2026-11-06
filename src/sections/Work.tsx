@@ -68,14 +68,15 @@ export function Work() {
   }, [])
 
   // With the carousel the track is the scroll that turns the prism and the pin the screen that
-  // stays meanwhile (work.css); data-scene tells the scene to follow the pin (SectionAnchor).
+  // stays meanwhile (work.css); the scene centres on the stage, marked data-scene (SectionAnchor).
   return (
     <div className="work-track" style={{ '--projects': projects.length } as CSSProperties}>
-      <div className="work-pin" data-scene>
+      <div className="work-pin">
         <h2>
           <Typed {...title} />
           <Caret at={title.end} until={cardsAt + 600} />
         </h2>
+        <div className="work-stage" data-scene />
         <ol ref={grid} className="work-grid">
           {projects.map((project) => (
             <ProjectItem key={project.id} project={project} />

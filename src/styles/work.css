@@ -94,6 +94,27 @@ html[data-stage='3d'] .work-pin {
   }
 }
 
+/* Where the scene centres (data-scene): the whole pin on wide screens; on tall ones the space under
+   a title moved up, so the roller sits lower and clear of it. */
+html[data-stage='3d'] .work-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  html[data-stage='3d'] .work-pin {
+    display: flex;
+    flex-direction: column;
+    padding-block: 4.5rem 0;
+  }
+
+  html[data-stage='3d'] .work-stage {
+    position: static;
+    flex: 1;
+  }
+}
+
 html[data-stage='3d'] .work-grid {
   position: absolute;
   width: 1px;
