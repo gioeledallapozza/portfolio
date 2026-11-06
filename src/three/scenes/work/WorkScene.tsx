@@ -232,8 +232,9 @@ export function WorkScene() {
                 material={card.glass}
                 onClick={() => carousel.open(copy % projects.length)}
                 onPointerOver={(event) => {
-                  // Touch fires over but not always out: hover is for mice only.
-                  if (event.pointerType !== 'mouse') return
+                  // Touch fires over but not always out: no hover for it. Not `!== 'mouse'`: after a
+                  // scroll the raycast replays the last event, often a wheel, which has no pointerType.
+                  if (event.pointerType === 'touch') return
                   carousel.hover(copy)
                   document.body.style.cursor = 'pointer'
                 }}
