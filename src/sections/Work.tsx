@@ -1,10 +1,16 @@
 // src/sections/Work.tsx
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
+import '../styles/typed.css'
 import '../styles/work.css'
 import { projects, type Project } from '../content/projects'
+import { Caret, timeline, Typed } from './Typed'
 
 // Work: the project grid (F-23), each project's full-screen detail (F-22) and the HTML of the carousel.
 // Every detail is a closed <dialog> already in the page, so all text is indexed and keyboard-reachable.
+
+// Once in view (F-35) the title types, then the front card lights up, `cardsAt` ms in (WorkScene).
+const [title] = timeline([{ text: 'Work', speed: 60, pause: 150 }])
+export const cardsAt = title.end + 100
 
 // Opens a project's detail. Focus goes to the dialog itself, not to Close, so a mouse click leaves
 // no ring on the button; Tab reaches Close next.
@@ -44,7 +50,6 @@ async function meanColor(src: string) {
 // Work section content.
 export function Work() {
   const grid = useRef<HTMLOListElement>(null)
-  const [paused, setPaused] = useState(false)
 
   // Marks each project the first time it comes into view; the entrance itself is in work.css.
   useEffect(() => {
@@ -62,24 +67,22 @@ export function Work() {
     return () => observer.disconnect()
   }, [])
 
+  // With the carousel the track is the scroll that turns the prism and the pin the screen that
+  // stays meanwhile (work.css); data-scene tells the scene to follow the pin (SectionAnchor).
   return (
-    <>
-      <h2>Work</h2>
-      <ol ref={grid} className="work-grid">
-        {projects.map((project) => (
-          <ProjectItem key={project.id} project={project} />
-        ))}
-      </ol>
-      {/* Carousel only (shown with data-stage="3d"): the pause (N-05), read by WorkScene every frame. */}
-      <button
-        className="work-pause"
-        type="button"
-        aria-pressed={paused}
-        onClick={() => setPaused(!paused)}
-      >
-        {paused ? 'Play' : 'Pause'} rotation
-      </button>
-    </>
+    <div className="work-track" style={{ '--projects': projects.length } as CSSProperties}>
+      <div className="work-pin" data-scene>
+        <h2>
+          <Typed {...title} />
+          <Caret at={title.end} until={cardsAt + 600} />
+        </h2>
+        <ol ref={grid} className="work-grid">
+          {projects.map((project) => (
+            <ProjectItem key={project.id} project={project} />
+          ))}
+        </ol>
+      </div>
+    </div>
   )
 }
 

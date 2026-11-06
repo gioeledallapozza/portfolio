@@ -1,5 +1,5 @@
 /* src/styles/home.css */
-/* Home (F-04): big name bottom-left; the typing comes from typed.css. */
+/* Home (F-04): big name bottom-left; the typing comes from typed.css, the rise from base.css. */
 #home {
   display: flex;
   flex-direction: column;
@@ -32,11 +32,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 1.5rem;
-}
-
-/* Inside the lime button the caret is dark. */
-.home-actions .button {
-  --typed-caret: var(--color-bg);
 }
 
 .home-link {

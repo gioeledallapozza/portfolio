@@ -13,7 +13,7 @@
     height: 0.9em;
     margin-left: 0.05em;
     vertical-align: -0.1em;
-    background: var(--typed-caret, var(--color-text));
+    background: var(--color-text);
     visibility: hidden;
     animation:
       typed-show 0s var(--at) forwards,
@@ -28,14 +28,8 @@
   }
 
   /* Every section types only once it comes into view (.entered, App.tsx): paused, the delays wait too. */
-  section:not(.entered) :is(.typed, .caret, .typed-box) {
+  section:not(.entered) :is(.typed, .caret) {
     animation-play-state: paused;
-  }
-
-  /* Elements that appear when their text starts, such as the button boxes. */
-  .typed-box {
-    visibility: hidden;
-    animation: typed-show 0s var(--at) forwards;
   }
 }
 
@@ -55,7 +49,7 @@
 @keyframes typed-caret {
   from,
   to {
-    background: var(--typed-caret, var(--color-text));
+    background: var(--color-text);
   }
 }
 

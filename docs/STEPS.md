@@ -1,6 +1,6 @@
 # Passi
 
-Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b) · 2026-11-06: S-14…S-16, S-14 fatto
+Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b) · 2026-11-06: S-14…S-16 fatti
 
 L'**ordine** del lavoro. Il **cosa** è in `SPEC.md`, il **come** in `ARCHITECTURE.md`; la storia dei passi fatti è in git.
 
@@ -21,8 +21,8 @@ Un passo alla volta, su `dev`: aggiorna nello stesso commit i documenti che camb
 | S-07 ✓  | About, Contact, link a Cal.com, meta, OG e favicon; Lighthouse | F-30…F-32, N-01, N-07…N-09   |
 | S-07b ✓ | Ingresso di About e Contact                                    | F-34, N-04                   |
 | S-14 ✓  | Schermata di caricamento                                       | F-05, F-23, N-01, N-04, A-10 |
-| S-15    | Work guidato dallo scroll e rullo                              | F-20, F-21, N-04, N-06       |
-| S-16    | Ingresso di Work                                               | F-35, N-04, A-10             |
+| S-15 ✓  | Work guidato dallo scroll e rullo                              | F-20, F-21, N-04, N-06       |
+| S-16 ✓  | Ingresso di Work                                               | F-35, N-04, A-10             |
 
 Poi prova su iPhone e Safari, e PR `dev` → `main` per la v0.4.0.
 

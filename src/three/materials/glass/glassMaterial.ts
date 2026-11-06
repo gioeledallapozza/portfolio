@@ -24,6 +24,7 @@ import { Color, MeshBasicNodeMaterial, Vector2, type Node, type Texture } from '
 import { chromaticSample, desaturate, softSample } from '../../tsl/color'
 import { blockNoise, grain } from '../../tsl/noise'
 import { chamferBox, fill, line, roundedBox } from '../../tsl/sdf'
+import { glassEnter } from './glassEnter'
 import { glassOpen, openTuning } from './glassOpen'
 
 // Glass cards (F-24, A-04): the project image under a simulated pane tinted with its own colour,
@@ -86,6 +87,7 @@ const createCardUniforms = () => ({
   hover: uniform(0), // 0 → 1 while the pointer is over the card
   focus: uniform(0), // 0 → 1 while the card has keyboard focus
   open: uniform(0), // 0 → 1 during the flight into the card
+  enter: uniform(0), // 0 → 1 as the card lights up the first time Work is in view (F-35)
   pointer: uniform(new Vector2(0.5, 0.5)), // pointer on the card, in uv
 })
 export type CardUniforms = ReturnType<typeof createCardUniforms>
@@ -123,9 +125,11 @@ export function createGlassCard(image: Texture, title: Texture) {
     return mix(speckled, veil, glassTuning.grain.cover.mul(amount))
   }
 
-  // The break of the opening moves the bands of the image, of the shape and of the title alike.
+  // The entrance, then the break of the opening, move the bands of the image, of the shape and of
+  // the title alike.
+  const enter = glassEnter(uv(), uniforms.enter)
   const opening = uniforms.open.max(openTuning.preview)
-  const open = glassOpen(uv(), opening)
+  const open = glassOpen(enter.uv, opening)
   // Glass that stands: `glassOn` for the unbroken bands, `kept` adds the frame left on the screen's
   // edges once open (the frame keeps the frosted colour and grain, not the edge or the band).
   const glassOn = open.glass
@@ -165,9 +169,9 @@ export function createGlassCard(image: Texture, title: Texture) {
   const sheen = smoothstep(band.width.mul(0.5), band.width.mul(0.2), across)
   result = result.add(sheen.mul(band.strength).mul(band.on).mul(glassOn))
 
-  // e. Scanlines on the screen's rows.
+  // e. Scanlines on the screen's rows, stronger while the card lights up.
   const rows = sin(screenCoordinate.y.mul(scan.density)).mul(0.5).add(0.5)
-  result = result.mul(rows.mul(scan.strength).mul(glassOn).oneMinus())
+  result = result.mul(rows.mul(scan.strength.max(enter.scan)).mul(glassOn).oneMinus())
 
   // f. The grain, defined above with the rim.
   result = grained(result, frost, kept)
@@ -179,7 +183,7 @@ export function createGlassCard(image: Texture, title: Texture) {
   const glass = new MeshBasicNodeMaterial({ transparent: true })
   glass.colorNode = result
   // Where the glass is gone the card is a plain rectangle, like the detail's image.
-  glass.opacityNode = mix(1, fill(d), glassOn)
+  glass.opacityNode = mix(1, fill(d), glassOn).mul(enter.shown)
 
   // The title: a mask in the text colour, split into red, green and blue for the fringes, that
   // breaks with the glass and crumbles into blocks as the card opens.
@@ -192,13 +196,15 @@ export function createGlassCard(image: Texture, title: Texture) {
   const crumble = step(opening.mul(1.15), blockNoise(open.uv, vec2(64, 36), time))
   const titleMaterial = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false })
   titleMaterial.colorNode = mask.mul(titleTuning.color).div(coverage.max(0.001))
-  titleMaterial.opacityNode = coverage.mul(crumble)
+  titleMaterial.opacityNode = coverage.mul(crumble).mul(enter.shown)
 
   // The slab's sides: the rim's recipe and grain, on the colour of the image at the border (the
   // slab's uv come from its position).
   const border = frosted(uv())
   const slab = new MeshBasicNodeMaterial()
   slab.colorNode = grained(rimColor(border, normalLocal), border, float(1))
+  // Opaque, so its bands are cut out rather than faded.
+  slab.maskNode = glassEnter(uv(), uniforms.enter).shown.greaterThan(0.5)
 
   return { glass, slab, title: titleMaterial, uniforms }
 }

@@ -1,6 +1,6 @@
 # Architettura
 
-Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b) · 2026-11-06: A-10 e loader (S-14)
+Made by: Gioele Dalla Pozza · 2026-11-04: prima stesura · 2026-11-06: accorciato (S-06b) · 2026-11-06: A-10 e loader (S-14) · 2026-11-06: Work guidato dallo scroll (S-15, S-16)
 
 Il **come**, solo ciò che il codice da solo non spiega: valori, durate, formule e nomi vivono nel codice. Il **cosa** è in `SPEC.md`.
 
@@ -39,10 +39,12 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - Un solo markup per griglia e carosello: per progetto un `<button>` e un `<dialog>` chiuso, sempre nella pagina, così il testo resta indicizzabile e raggiungibile da tastiera anche col 3D (N-06).
 - La griglia è la vista di partenza e la scena la sostituisce sotto il loader, a scena pronta: se il 3D fallisce o non arriva in tempo resta la griglia. Finché il loader copre, la pagina è `inert` e lo scroll è bloccato, così focus e scroll non finiscono in una pagina che non si vede.
 - `Work.tsx` e la scena parlano via DOM (eventi, focus, attributi), senza stato React condiviso.
+- Work col 3D è un binario più alto dello schermo con dentro un pin sticky: la card la sceglie lo scroll nativo, senza intercettare la rotella né librerie, così touch, tastiera e scrollbar funzionano da soli; la scena segue il pin (`data-scene`), non la sezione. Il prisma segue lo scroll in modo continuo, con un minimo di inseguimento perché gli scatti della rotella non saltino; scorrendo, le card si muovono sotto un mouse fermo, quindi il raycast si ripete a ogni movimento e l'hover segue la card che c'è sotto.
+- Il prisma gira in modo che le card scorrano lungo il lato lungo dello schermo: rullo sui telefoni, giostra sugli schermi larghi, così le vicine restano in vista.
 - Con pochi progetti le card si ripetono fino a riempire il giro, così la sequenza non si spezza.
 - La camera entra nella card finché riempie lo schermo: l'ultimo fotogramma del canvas è il primo del dettaglio.
-- Titolo sul vetro: disegnato su un canvas 2D fuori dalla pagina, dopo il caricamento del font, e usato come texture nella stessa scena del prisma, senza un secondo canvas (A-02).
-- Vetro: il colore che lo tinge viene da una mipmap più grossa dell'immagine letta nello stesso punto, così ogni zona prende il colore di ciò che ha sotto; lo spessore è una lastra vera (`glassShape.ts`) col contorno dello sdf, e le card di spalle alla camera si nascondono. Un materiale per copia, così hover, focus e apertura toccano una card sola; lo shader è lo stesso e si compila una volta (`renderer._pipelines` resta costante). L'apertura è in `glassOpen.ts` per provarne varianti, e a uOpen = 1 lascia l'immagine nitida con una cornice di vetro ai bordi dello schermo, che il dettaglio ridisegna in CSS col colore medio dell'immagine (calcolato da `showDetail`, il CSS non legge i pixel): canvas e dialog sono una scena sola.
+- Titolo sul vetro: disegnato su un canvas 2D fuori dalla pagina, dopo il caricamento del font, e usato come texture nella stessa scena del prisma, senza un secondo canvas (A-02); nell'ingresso si ridisegna con `decode` di `scramble.ts`, lo stesso glitch del loader.
+- Vetro: il colore che lo tinge viene da una mipmap più grossa dell'immagine letta nello stesso punto, così ogni zona prende il colore di ciò che ha sotto; lo spessore è una lastra vera (`glassShape.ts`) col contorno dello sdf, e le card di spalle alla camera si nascondono. Un materiale per copia, così hover, focus e apertura toccano una card sola; lo shader è lo stesso e si compila una volta (`renderer._pipelines` resta costante). L'apertura è in `glassOpen.ts` per provarne varianti, e l'ingresso in `glassEnter.ts` sulle stesse fette (A-10); a uOpen = 1 l'apertura lascia l'immagine nitida con una cornice di vetro ai bordi dello schermo, che il dettaglio ridisegna in CSS col colore medio dell'immagine (calcolato da `showDetail`, il CSS non legge i pixel): canvas e dialog sono una scena sola.
 
 ## 5. Decisioni
 

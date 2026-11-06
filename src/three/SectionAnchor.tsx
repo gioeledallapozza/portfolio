@@ -18,7 +18,9 @@ export function SectionAnchor({ id, onCompiled, children }: SectionAnchorProps) 
   const group = useRef<Group>(null)
 
   useFrame(({ size, viewport }) => {
-    const element = document.getElementById(id)
+    // A section taller than the screen marks with data-scene the part its scene stays with.
+    const section = document.getElementById(id)
+    const element = section?.querySelector('[data-scene]') ?? section
     if (!element || !group.current) return
     const rect = element.getBoundingClientRect()
     group.current.visible = rect.bottom > 0 && rect.top < size.height
