@@ -17,6 +17,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - `src/sections.ts`: l'elenco ordinato delle sezioni, da cui nascono nav, pagina, sezione attiva e scene del canvas; aggiungere Configure = un componente in `sections/`, una scena in `three/scenes/`, una riga qui.
 - `src/content/projects.ts`: unica fonte dei progetti (testi, link, stack); un'immagine 16:9 per progetto in `public/projects/`.
 - `src/styles/tokens.css`: unica fonte di colori e font, letta anche dal canvas; ogni altro CSS è importato dal suo componente.
+- `src/three/`: `tsl/` blocchi TSL puri (forma, rumore, colore), da riusare per le particelle in v2; `materials/` factory che li compongono e restituiscono materiale e uniform tipizzati; `textures/` texture disegnate su canvas 2D; `scenes/<sezione>/` cosa c'è in scena e il collegamento con l'HTML, col movimento in un hook a parte (`useCarousel`), così si legge senza la scena; `inspector/` solo in sviluppo (`?inspector`, import dinamico fuori dalla build), unica eccezione a N-10.
 
 ## 3. Render
 
@@ -35,11 +36,12 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - `Work.tsx` e la scena parlano via DOM (eventi, focus, attributi), senza stato React condiviso.
 - Con pochi progetti le card si ripetono fino a riempire il giro, così la sequenza non si spezza.
 - La camera entra nella card finché riempie lo schermo: l'ultimo fotogramma del canvas è il primo del dettaglio.
-- Titolo sul vetro (S-08): disegnato su un canvas 2D fuori dalla pagina, dopo il caricamento del font, e usato come texture nella stessa scena del prisma, senza un secondo canvas (A-02).
+- Titolo sul vetro: disegnato su un canvas 2D fuori dalla pagina, dopo il caricamento del font, e usato come texture nella stessa scena del prisma, senza un secondo canvas (A-02).
+- Vetro: il colore che lo tinge viene da una mipmap più grossa dell'immagine letta nello stesso punto, così ogni zona prende il colore di ciò che ha sotto; lo spessore è una lastra vera (`glassShape.ts`) col contorno dello sdf, e le card di spalle alla camera si nascondono. Un materiale per copia, così hover, focus e apertura toccano una card sola; lo shader è lo stesso e si compila una volta (`renderer._pipelines` resta costante). L'apertura è in `glassOpen.ts` per provarne varianti, e a uOpen = 1 lascia l'immagine nitida con una cornice di vetro ai bordi dello schermo, che il dettaglio ridisegna in CSS col colore medio dell'immagine (calcolato da `showDetail`, il CSS non legge i pixel): canvas e dialog sono una scena sola.
 
 ## 5. Decisioni
 
-- **A-01** Un solo canvas fisso dietro la pagina. Eccezione temporanea per F-11: il canvas dell'embed del motore si affianca in dissolvenza incrociata finché il motore non arriva come pacchetto npm nello stesso canvas.
+- **A-01** Un solo canvas fisso dietro la pagina, senza eccezioni: anche il configuratore di F-11 entra lì, in `three/scenes/configure/`.
 - **A-02** Tutto il testo in HTML; nel canvas solo copie decorative di testo già presente nell'HTML (accessibilità, SEO, LCP).
 - **A-03** Contenuti in un file TS, niente CMS.
 - **A-04** Vetro simulato in TSL (F-24), senza trasmissione reale.
@@ -47,7 +49,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 - **A-06** Deploy con l'integrazione Git di Vercel (push e PR → anteprima, `main` → produzione); GitHub Actions solo per controlli e versioni.
 - **A-07** Versioni con semantic-release, solo tag e GitHub Release: `package.json` resta `0.0.0` e il bot non committa su `main`.
 - **A-08** Scroll fluido in CSS, senza librerie.
-- **A-09** In v2 il bundle del motore si carica da Cloudflare a un URL con la versione, solo vicino a Configure: niente file generati nel repo; serve l'header CORS per dallapozza.dev.
+- **A-09** Prima di entrare nel portfolio il motore del configuratore diventa un pacchetto npm, nel suo repo, importato in modo dinamico solo vicino a Configure: niente embed, niente dissolvenza tra due canvas, niente file generati nel repo.
 
 ## 6. Debito
 

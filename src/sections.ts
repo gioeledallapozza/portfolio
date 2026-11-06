@@ -9,7 +9,7 @@ import { Work } from './sections/Work'
 // A new section (Configure in v2) is one entry plus its components.
 
 const WorkScene = lazy(() =>
-  import('./three/scenes/WorkScene').then((m) => ({ default: m.WorkScene })),
+  import('./three/scenes/work/WorkScene').then((m) => ({ default: m.WorkScene })),
 )
 
 // One section: anchor id, nav label (none = not in the nav), HTML and optional 3D scene.

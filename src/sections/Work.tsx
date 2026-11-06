@@ -10,8 +10,35 @@ import { projects, type Project } from '../content/projects'
 // no ring on the button; Tab reaches Close next.
 export function showDetail(id: string) {
   const dialog = document.getElementById(`${id}-detail`) as HTMLDialogElement | null
-  dialog?.showModal()
-  dialog?.focus()
+  if (!dialog) return
+  dialog.showModal()
+  dialog.focus()
+  // The frame's tint (work.css), once per project; with the carousel the image is already cached.
+  if (!dialog.style.getPropertyValue('--tint')) {
+    const image = dialog.querySelector<HTMLImageElement>('.work-detail-image')
+    if (image) meanColor(image.src).then((color) => dialog.style.setProperty('--tint', color))
+  }
+}
+
+// The image's mean colour, like the glass's coarsest mipmap: drawn at 32 × 18 and averaged in
+// linear light, as the GPU averages its mipmaps.
+async function meanColor(src: string) {
+  const image = new Image()
+  image.src = src
+  await image.decode()
+  const canvas = document.createElement('canvas')
+  canvas.width = 32
+  canvas.height = 18
+  const context = canvas.getContext('2d', { willReadFrequently: true })!
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+  const sum = [0, 0, 0]
+  for (let i = 0; i < pixels.length; i += 4) {
+    for (let channel = 0; channel < 3; channel++) sum[channel] += (pixels[i + channel] / 255) ** 2.2
+  }
+  const count = pixels.length / 4
+  const [r, g, b] = sum.map((total) => Math.round((total / count) ** (1 / 2.2) * 255))
+  return `rgb(${r} ${g} ${b})`
 }
 
 // Work section content.
@@ -43,9 +70,7 @@ export function Work() {
           <ProjectItem key={project.id} project={project} />
         ))}
       </ol>
-      {/* Carousel only (shown with data-stage="3d"): the title over a card, written by WorkScene,
-          and the pause (N-05), read by WorkScene every frame. */}
-      <p className="work-label" aria-hidden="true" />
+      {/* Carousel only (shown with data-stage="3d"): the pause (N-05), read by WorkScene every frame. */}
       <button
         className="work-pause"
         type="button"
