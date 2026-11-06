@@ -27,6 +27,11 @@
       typed-hide 0s var(--until) forwards;
   }
 
+  /* Every section types only once it comes into view (.entered, App.tsx): paused, the delays wait too. */
+  section:not(.entered) :is(.typed, .caret, .typed-box) {
+    animation-play-state: paused;
+  }
+
   /* Elements that appear when their text starts, such as the button boxes. */
   .typed-box {
     visibility: hidden;

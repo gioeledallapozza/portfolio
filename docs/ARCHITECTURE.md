@@ -30,7 +30,7 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 ## 4. Pagina e Work
 
 - Un URL con ancora scorre dopo il primo render, perché prima la sezione non esiste.
-- `Typed`: il testo trasparente conta già come disegnato, quindi l'LCP non aspetta la fine (N-01); niente pseudo-elementi, perché Chrome toglierebbe gli spazi dal nome accessibile.
+- `Typed`: il testo trasparente conta già come disegnato, quindi l'LCP non aspetta la fine (N-01); niente pseudo-elementi, perché Chrome toglierebbe gli spazi dal nome accessibile. Le animazioni restano in pausa finché la sezione non entra in vista (`entered`), così i ritardi partono da lì e un unico `Typed` serve ogni sezione (F-34).
 - Un solo markup per griglia e carosello: per progetto un `<button>` e un `<dialog>` chiuso, sempre nella pagina, così il testo resta indicizzabile e raggiungibile da tastiera anche col 3D (N-06).
 - La griglia è la vista di partenza e la scena la nasconde solo a texture caricate: se il 3D fallisce resta la griglia. La scritta della Home copre il caricamento, e lo scroll non si blocca mai.
 - `Work.tsx` e la scena parlano via DOM (eventi, focus, attributi), senza stato React condiviso.
@@ -54,6 +54,5 @@ Versioni esatte, senza `^`, uguali a quelle risolte nel lockfile del configurato
 ## 6. Debito
 
 - R3F 9.7.0 usa `THREE.Clock`, deprecato in three 0.186, e chiede react < 19.3 (avviso di pnpm): resta finché non si aggiorna fiber.
-- `/favicon.ico` dà 404 e `robots.txt` manca (Lighthouse SEO 92): arrivano in S-07 (N-09).
 - Chrome headless perde il device WebGPU anche con una pagina minima: i test automatici usano `?webgl`, WebGPU si prova su hardware vero.
 - Le immagini di Car e Watch restano 3840×2160 per scelta (circa 44 MB ciascuna in GPU con le mipmap); se i telefoni non reggono, texture KTX2 compresse (loader già in three).
