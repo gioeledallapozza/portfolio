@@ -15,6 +15,7 @@ import {
   titleFontReady,
   titlePixels,
 } from '../../textures/titleTexture'
+import { restingViewport } from '../../SectionAnchor'
 import { useCarousel } from './useCarousel'
 
 // Work carousel (F-20…F-24, F-35): the glass cards in the scene and their wiring to the HTML of
@@ -54,10 +55,11 @@ const scrollPosition = () => {
   return share > 0 ? MathUtils.clamp(-top / share - 0.5, 0, projects.length - 1) : 0
 }
 
-// Tab on a project (F-21): the page scrolls to the middle of its share, and the scroll turns the prism.
-const scrollToProject = (projectIndex: number) => {
+// Tab on a project (F-21): the page scrolls to the middle of its share, and the scroll turns the
+// prism. Back from a detail the scroll jumps there instead, so the opened card stays in front.
+const scrollToProject = (projectIndex: number, behavior: ScrollBehavior = 'auto') => {
   const { top, share } = track()
-  window.scrollTo({ top: window.scrollY + top + (projectIndex + 0.5) * share })
+  window.scrollTo({ top: window.scrollY + top + (projectIndex + 0.5) * share, behavior })
 }
 
 const workEntered = () => document.getElementById('work')?.classList.contains('entered') ?? false
@@ -71,7 +73,7 @@ export function WorkScene() {
     projects.map((project) => project.image),
   )
   const size = useThree((state) => state.size)
-  const viewport = useThree((state) => state.viewport)
+  const viewport = restingViewport(size)
   const gl = useThree((state) => state.gl)
 
   // Card size follows the screen; copies are a multiple of the projects, so the sequence never
@@ -89,7 +91,7 @@ export function WorkScene() {
   const apothem = ((axis === 'y' ? width : height) * (1 + GAP)) / 2 / Math.tan(Math.PI / copies)
 
   const { prism, cards, motion, ...carousel } = useCarousel(
-    { copies, step, axis, width, height },
+    { projects: projects.length, copies, step, axis, width, height },
     {
       scrolled: scrollPosition,
       entered: workEntered,
@@ -177,16 +179,24 @@ export function WorkScene() {
       const id = (event as CustomEvent<string>).detail
       carousel.open(projects.findIndex((project) => project.id === id))
     }
+    const onClose = (event: Event) => {
+      const id = (event.target as HTMLElement).id
+      scrollToProject(
+        projects.findIndex((project) => `${project.id}-detail` === id),
+        'instant',
+      )
+      carousel.close()
+    }
 
     grid?.addEventListener('focusin', onFocus)
     grid?.addEventListener('focusout', carousel.blur)
     window.addEventListener('work:open', onOpen)
-    dialogs.forEach((dialog) => dialog.addEventListener('close', carousel.close))
+    dialogs.forEach((dialog) => dialog.addEventListener('close', onClose))
     return () => {
       grid?.removeEventListener('focusin', onFocus)
       grid?.removeEventListener('focusout', carousel.blur)
       window.removeEventListener('work:open', onOpen)
-      dialogs.forEach((dialog) => dialog.removeEventListener('close', carousel.close))
+      dialogs.forEach((dialog) => dialog.removeEventListener('close', onClose))
     }
   })
 
@@ -230,7 +240,7 @@ export function WorkScene() {
               <mesh
                 geometry={geometry}
                 material={card.glass}
-                onClick={() => carousel.open(copy % projects.length)}
+                onClick={() => carousel.open(copy % projects.length, copy)}
                 onPointerOver={(event) => {
                   // Touch fires over but not always out: no hover for it. Not `!== 'mouse'`: after a
                   // scroll the raycast replays the last event, often a wheel, which has no pointerType.

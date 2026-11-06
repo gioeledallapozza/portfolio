@@ -66,10 +66,16 @@ a {
   }
 }
 
+/* As tall as the screen without the browser's bars (lvh), so the canvas never resizes as a phone's
+   address bar comes and goes: phones report that resize late, and R3F would draw stretched until
+   the next scroll. Page and scene both measure from the top, so they still line up. */
 .stage {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   z-index: -1;
+  width: 100%;
+  height: 100lvh;
 }
 
 /* Every section fills the screen; the top padding keeps its heading clear of the fixed nav. */
