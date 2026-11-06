@@ -1,0 +1,73 @@
+/* src/styles/contact.css */
+/* Contact (F-31, F-32): big title like the Home name, the two ways to reach me, footer at the bottom. */
+#contact {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.contact-title {
+  margin: 0;
+  font-size: clamp(3rem, 10vw, 8rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.contact-lead {
+  max-width: 36rem;
+  margin: 1.5rem 0 2.5rem;
+  color: var(--color-muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2rem;
+}
+
+.contact-email {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  overflow-wrap: anywhere;
+  text-decoration: underline transparent 2px;
+  text-underline-offset: 6px;
+  transition: text-decoration-color 0.2s;
+}
+
+.contact-email:hover {
+  text-decoration-color: var(--color-accent);
+}
+
+.contact-profiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin: 3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-profiles a {
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact-profiles a:hover {
+  color: var(--color-text);
+}
+
+.contact-footer {
+  padding-top: 2rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}

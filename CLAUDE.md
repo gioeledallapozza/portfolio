@@ -9,7 +9,7 @@ Stack: React 19, TypeScript strict, React Three Fiber 9, three.js WebGPURenderer
 ## Regole pilota
 
 - **Semplicità.** Qui non c'è logica complessa: meno file, meno righe, meno concetti.
-- **Tutto il testo è HTML**, mai nel canvas (A-02).
+- **Tutto il testo è HTML**; nel canvas solo copie decorative di testo già presente nell'HTML (A-02).
 - **Un progetto nuovo è una voce in `src/content/projects.ts` più un'immagine**, nient'altro (F-25).
 - **Colori e font solo da `src/styles/tokens.css`** (N-10).
 - **Solo TSL**: niente GLSL, niente componenti drei (A-05).
@@ -37,7 +37,7 @@ Lint, type-check e format:check devono passare prima di ogni commit.
 - Ogni requisito ha un ID (F-, N-), una priorità MoSCoW e un criterio di verifica; decisioni A-, passi S-, domande Q-.
 - Niente codice né dipendenze senza un ID dello SPEC: ciò che manca si propone come requisito.
 - Quando cambi un comportamento descritto in un `.md`, aggiorni il `.md` nello stesso commit.
-- Ogni documento resta sotto le ~70 righe.
+- SPEC ≤ 50 righe (solo il cosa), ARCHITECTURE ≤ 60 (solo il perché), STEPS ≤ 35: valori, durate e nomi vivono nel codice, e ogni cosa ha una sola fonte.
 
 ## Git
 

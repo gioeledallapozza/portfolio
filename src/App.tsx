@@ -17,6 +17,22 @@ export function App() {
     target?.scrollIntoView({ behavior: 'instant' })
   }, [])
 
+  // Marks each section the first time its top passes 70% of the screen: its entrance starts then (F-34).
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          entry.target.classList.add('entered')
+          observer.unobserve(entry.target)
+        }
+      },
+      { rootMargin: '0px 0px -30% 0px' },
+    )
+    for (const section of document.querySelectorAll('main > section')) observer.observe(section)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <>
       <Nav />

@@ -1,0 +1,75 @@
+/* src/styles/about.css */
+/* About (F-30): big statement, then bio and the agency list side by side from 800 px. */
+#about {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about-title {
+  max-width: 20ch;
+  margin: 0 0 3rem;
+  font-size: clamp(2rem, 5.5vw, 4.5rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.about-body {
+  display: grid;
+  gap: 3rem;
+}
+
+@media (min-width: 800px) {
+  .about-body {
+    grid-template-columns: 3fr 2fr;
+    gap: 4rem;
+  }
+}
+
+.about-bio p {
+  max-width: 40rem;
+  margin: 0 0 1.25rem;
+  line-height: 1.7;
+}
+
+.about-bio a {
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 4px;
+}
+
+.about-bio a:hover {
+  color: var(--color-accent);
+}
+
+.about-agencies h3 {
+  margin: 0 0 1rem;
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.about-agencies ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each item behind a thin rule, with a lime square as the marker. */
+.about-agencies li {
+  position: relative;
+  padding: 1rem 0 1rem 1.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-muted) 40%, transparent);
+  line-height: 1.6;
+}
+
+.about-agencies li::before {
+  content: '';
+  position: absolute;
+  top: 1.55rem;
+  left: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--color-accent);
+}

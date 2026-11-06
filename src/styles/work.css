@@ -68,6 +68,43 @@
   }
 }
 
+/* Carousel (data-stage="3d", set by WorkScene): the grid leaves the screen but stays for screen
+   readers and Tab; horizontal drags turn the prism instead of scrolling the page. */
+.work-pause {
+  display: none;
+}
+
+html[data-stage='3d'] #work {
+  position: relative;
+  touch-action: pan-y;
+}
+
+html[data-stage='3d'] .work-grid {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+html[data-stage='3d'] .work-pause {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  display: block;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+html[data-stage='3d'] .work-pause:hover {
+  color: var(--color-text);
+}
+
 /* Detail: the image fills the screen, darkened, with the text at the bottom.
    Image and gradient are fixed, so their overflow never scrolls the dialog. */
 .work-detail {
@@ -85,6 +122,11 @@
     opacity 0.3s,
     display 0.3s allow-discrete,
     overlay 0.3s allow-discrete;
+}
+
+/* The dialog takes the focus when it opens (showDetail): its ring would frame the whole screen. */
+.work-detail:focus-visible {
+  outline: none;
 }
 
 .work-detail[open] {
@@ -120,6 +162,28 @@ html:has(.work-detail[open]) {
   transition: opacity 0.9s 0.3s;
 }
 
+/* Frame: the glass stays along the edges of the detail, as at the end of the 3D flight
+   (openTuning.frame and frost), so canvas and dialog read as one scene; without the 3D the
+   grid's detail has it too. Same recipe as the shader: the image's mean colour (--tint, set by
+   showDetail in Work.tsx) with the grain blended in soft-light, so it lightens and darkens the
+   tint instead of greying it, at 70% over the image (openTuning.frost); the mask keeps the
+   outer 8%, fading inward. */
+.work-detail::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0.5 0 0 0 0.25 0.5 0 0 0 0.25 0.5 0 0 0 0.25 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-color: var(--tint, var(--color-bg));
+  background-blend-mode: soft-light;
+  opacity: 0.7;
+  transition: background-color 0.2s;
+  mask:
+    linear-gradient(to right, var(--color-bg), transparent 8% 92%, var(--color-bg)),
+    linear-gradient(to bottom, var(--color-bg), transparent 8% 92%, var(--color-bg));
+  pointer-events: none;
+}
+
 .work-detail form,
 .work-detail-text {
   transition:
@@ -130,6 +194,11 @@ html:has(.work-detail[open]) {
 /* Opening: we enter the image. It starts sharp and full screen (where the 3D zoom ends), then
    moves closer, darkens and blurs, and the text rises. Closing only fades the dialog. */
 @starting-style {
+  /* The dialog takes the focus when it opens (showDetail): its ring would frame the whole screen. */
+  .work-detail:focus-visible {
+    outline: none;
+  }
+
   .work-detail[open] {
     opacity: 0;
   }
@@ -150,10 +219,27 @@ html:has(.work-detail[open]) {
   }
 }
 
+/* With the carousel the camera has already flown into the card: the detail only finishes the
+   move, without waiting on the sharp image. */
+html[data-stage='3d'] .work-detail {
+  transition-duration: 0.15s;
+}
+
+html[data-stage='3d'] .work-detail-image,
+html[data-stage='3d'] .work-detail::after {
+  transition-duration: 0.5s;
+  transition-delay: 0s;
+}
+
+html[data-stage='3d'] .work-detail form,
+html[data-stage='3d'] .work-detail-text {
+  transition-delay: 0.2s;
+}
+
 .work-detail form,
 .work-detail-text {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .work-detail form {
