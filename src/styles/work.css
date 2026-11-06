@@ -68,15 +68,30 @@
   }
 }
 
-/* Carousel (data-stage="3d", set by WorkScene): the grid leaves the screen but stays for screen
-   readers and Tab; horizontal drags turn the prism instead of scrolling the page. */
-.work-pause {
-  display: none;
+/* Carousel (data-stage="3d", set by WorkScene): Work becomes a track taller than the screen, whose
+   pin sticks while the scroll turns the prism, one project per --stretch of scroll (F-20); the grid
+   leaves the screen but stays for screen readers and Tab. */
+html[data-stage='3d'] #work {
+  padding: 0;
 }
 
-html[data-stage='3d'] #work {
-  position: relative;
-  touch-action: pan-y;
+html[data-stage='3d'] .work-track {
+  --stretch: 60svh;
+  height: calc(100svh + var(--projects) * var(--stretch));
+}
+
+html[data-stage='3d'] .work-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  padding: 6rem 2rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  html[data-stage='3d'] .work-pin {
+    padding-inline: 1rem;
+  }
 }
 
 html[data-stage='3d'] .work-grid {
@@ -86,23 +101,6 @@ html[data-stage='3d'] .work-grid {
   margin: 0;
   overflow: hidden;
   clip-path: inset(50%);
-}
-
-html[data-stage='3d'] .work-pause {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  display: block;
-  padding: 0.5rem 0;
-  border: 0;
-  background: none;
-  color: var(--color-muted);
-  font: inherit;
-  cursor: pointer;
-}
-
-html[data-stage='3d'] .work-pause:hover {
-  color: var(--color-text);
 }
 
 /* Detail: the image fills the screen, darkened, with the text at the bottom.

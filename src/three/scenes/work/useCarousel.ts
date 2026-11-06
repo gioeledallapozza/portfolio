@@ -1,19 +1,21 @@
 // src/three/scenes/work/useCarousel.ts
 import { useRef } from 'react'
-import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Group, MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu'
 
-// Movement of the Work carousel (F-20…F-24): steps, drag, cards lifting on hover and focus, and the
-// camera flight into a card. It knows nothing of the HTML or the shaders: WorkScene wires them.
+// Movement of the Work carousel (F-20…F-24, F-35): the prism turning with the scroll, cards lifting on
+// hover and focus, the entrance and the camera flight into a card. It knows nothing of the HTML or
+// the shaders: WorkScene wires them.
 
-const HOLD = 2 // seconds on the active card before the next one
-const TURN = 0.35 // seconds of one step
+const FOLLOW = 18 // per second: how fast the prism catches up with the scroll
+const TURN = 0.35 // seconds to square the prism to a card before opening it
 const ZOOM_IN = 0.5 // seconds of the flight into the card
 const ZOOM_OUT = 0.4
-const CLICK_SLOP = 6 // pixels a pointer may move and still count as a click
 const LIFT_TIME = 0.15 // seconds for a card to lift on hover or focus
 const LIFT = 0.08 // how far it comes out along its radius, in card widths
 const GROW = 0.04 // how much it grows when lifted
+const ENTER = 0.9 // seconds for a card to light up
+const ENTER_OTHERS = 0.45 // seconds after the front card, the others light up
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
 
@@ -37,71 +39,64 @@ const progress = ({ start, duration }: Tween, now: number) =>
 
 // Size of the prism, computed by WorkScene from the screen.
 export interface CarouselLayout {
-  projects: number
   copies: number
   step: number // angle between two cards
-  apothem: number // distance from the axis to the middle of each card
+  axis: 'x' | 'y' // what the prism turns around
   width: number
   height: number
 }
 
 // What the carousel needs from the page.
 interface CarouselOptions {
-  isPaused: () => boolean
+  // How far the scroll has gone, in projects: 2.5 is halfway from the third to the fourth (F-20).
+  scrolled: () => number
+  // Whether Work has come into view, and how long after that the front card lights up (F-35).
+  entered: () => boolean
+  enterDelay: number
   // Called once the camera has reached the card: the HTML detail takes over from here.
   onOpened: (projectIndex: number) => void
 }
 
 // The prism's motion; returns its group ref, its live state and the actions WorkScene calls.
-export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: CarouselOptions) {
-  const { copies, step, apothem, width, height } = layout
-  const size = useThree((state) => state.size)
+export function useCarousel(
+  { copies, step, axis, width, height }: CarouselLayout,
+  { scrolled, entered, enterDelay, onOpened }: CarouselOptions,
+) {
   const viewport = useThree((state) => state.viewport)
+  const events = useThree((state) => state.events)
   const prism = useRef<Group>(null)
   // The lifting part of each card, filled by WorkScene's refs.
   const cards = useRef<(Group | null)[]>([])
 
-  // Everything that changes every frame lives here, outside React. `active` grows without bound:
-  // the card in front is `active mod copies`, and the prism's angle is `-active · step`.
+  // Everything that changes every frame lives here, outside React. The card in front is `active`,
+  // which is also its project, and the prism's angle is `-active · step`.
   const motion = useRef({
     now: 0,
     active: 0,
     angle: 0,
     turn: { from: 0, to: 0, start: 0, duration: 0 },
-    nextAt: HOLD,
     camera: null as (Tween & { from: Vector3; to: Vector3; ease: (t: number) => number }) | null,
     hovered: null as number | null,
     focused: null as number | null,
-    drag: null as { startX: number; angle: number; copy: number } | null,
     phase: 'idle' as 'idle' | 'opening' | 'open' | 'closing',
     opening: 0, // project being opened
     // Per card, 0 → 1: how far hover and focus have gone, read by WorkScene for the shaders.
     lift: Array.from({ length: copies }, () => ({ hover: 0, focus: 0 })),
     openCopy: 0, // card being opened
     open: 0, // 0 → 1 with the flight into that card, back to 0 on the way out
+    scrollY: 0, // the page's scroll at the last frame
+    enterStart: null as number | null, // when the front card starts lighting up
+    enter: Array.from({ length: copies }, () => 0), // per card, 0 → 1 as it lights up
   })
   // Where the camera rests (Stage's position).
   const home = useRef<Vector3>(null)
 
-  // One step to the given card: a short, hard turn, then HOLD seconds still.
+  // Squares the prism to the given card with a short, hard turn.
   const go = (active: number) => {
     const m = motion.current
     const duration = reducedMotion.matches ? 0 : TURN
     m.turn = { from: m.angle, to: -active * step, start: m.now, duration }
     m.active = active
-    m.nextAt = m.now + duration + HOLD
-  }
-
-  // `active` that brings the nearest copy of a project to the front.
-  const toward = (projectIndex: number) => {
-    const base = Math.round(-motion.current.angle / step)
-    let best = copies
-    for (let copy = projectIndex; copy < copies; copy += layout.projects) {
-      let diff = MathUtils.euclideanModulo(copy - base, copies)
-      if (diff > copies / 2) diff -= copies
-      if (Math.abs(diff) < Math.abs(best)) best = diff
-    }
-    return base + best
   }
 
   // Turns to the project, then flies into it.
@@ -113,8 +108,9 @@ export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: Caro
       m.phase = 'open'
       return
     }
-    go(toward(projectIndex))
-    m.openCopy = MathUtils.euclideanModulo(m.active, copies)
+    // Square to the card first: following the scroll, the prism can rest between two.
+    if (Math.abs(m.angle + projectIndex * step) > 1e-4) go(projectIndex)
+    m.openCopy = projectIndex
     m.phase = 'opening'
   }
 
@@ -122,12 +118,10 @@ export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: Caro
     motion.current.phase = 'closing'
   }
 
-  // Keyboard focus on a project's button: its card comes to the front and holds.
+  // Keyboard focus on a project's button: WorkScene scrolls to it, its card lifts.
   const focus = (projectIndex: number) => {
     const m = motion.current
-    if (m.phase !== 'idle') return
-    go(toward(projectIndex))
-    m.focused = MathUtils.euclideanModulo(m.active, copies)
+    m.focused = projectIndex
     // The prism turns under a still mouse, which fires no pointerout: forget the old hover.
     m.hovered = null
   }
@@ -140,33 +134,6 @@ export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: Caro
     motion.current.hovered = copy
   }
 
-  // Drag (F-21): the pointer turns the prism; on release it snaps to the nearest card.
-  const pointerDown = (event: ThreeEvent<PointerEvent>, copy: number) => {
-    const m = motion.current
-    if (m.phase !== 'idle') return
-    m.drag = { startX: event.clientX, angle: m.angle, copy }
-
-    const onMove = (move: PointerEvent) => {
-      if (!m.drag) return
-      m.angle =
-        m.drag.angle + ((move.clientX - m.drag.startX) * viewport.width) / size.width / apothem
-    }
-    const onUp = (up: PointerEvent) => {
-      const drag = m.drag
-      m.drag = null
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      window.removeEventListener('pointercancel', onUp)
-      if (!drag) return
-      const click = up.type === 'pointerup' && Math.abs(up.clientX - drag.startX) < CLICK_SLOP
-      if (click) open(drag.copy % layout.projects)
-      else go(Math.round(-m.angle / step))
-    }
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    window.addEventListener('pointercancel', onUp)
-  }
-
   useFrame(({ camera, clock }, delta) => {
     const group = prism.current
     if (!group) return
@@ -174,21 +141,36 @@ export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: Caro
     m.now = clock.elapsedTime
     home.current ??= camera.position.clone()
 
-    // Steps (F-20): hold on the active card, then turn to the next; anything that holds attention waits.
-    const still =
-      reducedMotion.matches ||
-      isPaused() ||
-      m.hovered !== null ||
-      m.focused !== null ||
-      m.drag !== null ||
-      m.phase !== 'idle'
-    if (still) m.nextAt = Math.max(m.nextAt, m.now + HOLD)
-    else if (m.now >= m.nextAt) go(m.active + 1)
-    if (!m.drag) {
+    // The scroll turns the prism (F-20), eased just enough that wheel notches do not jump; while a
+    // detail opens, is open or closes, a tween holds it square to its card.
+    const before = m.angle
+    if (m.phase === 'idle') {
+      const position = scrolled()
+      m.active = Math.round(position)
+      const target = -position * step
+      m.angle = reducedMotion.matches ? target : MathUtils.damp(m.angle, target, FOLLOW, delta)
+    } else {
       const { from, to } = m.turn
       m.angle = MathUtils.lerp(from, to, easeInOut(progress(m.turn, m.now)))
     }
-    group.rotation.y = m.angle
+    group.rotation.set(axis === 'x' ? m.angle : 0, axis === 'y' ? m.angle : 0, 0)
+
+    // The cards move under a still mouse, which fires no pointer event: raycast again from where it
+    // last was, so hover follows the card that is under it now.
+    if (Math.abs(m.angle - before) > 1e-5 || window.scrollY !== m.scrollY) events.update?.()
+    m.scrollY = window.scrollY
+
+    // Entrance (F-35): the front card lights up once the title is typed, the others after it; with
+    // reduced motion every card is on from the start.
+    if (m.enterStart === null && entered()) m.enterStart = m.now + enterDelay
+    m.enter.forEach((_, copy) => {
+      if (reducedMotion.matches) m.enter[copy] = 1
+      else if (m.enterStart === null) m.enter[copy] = 0
+      else {
+        const start = m.enterStart + (copy === m.active ? 0 : ENTER_OTHERS)
+        m.enter[copy] = MathUtils.clamp((m.now - start) / ENTER, 0, 1)
+      }
+    })
 
     // Lift (F-24): the hovered or focused card comes out along its radius and grows a little; any
     // other phase puts it back, so the flight starts from a card in its place.
@@ -248,7 +230,7 @@ export function useCarousel(layout: CarouselLayout, { isPaused, onOpened }: Caro
     }
   })
 
-  return { prism, cards, motion, open, close, focus, blur, hover, pointerDown }
+  return { prism, cards, motion, open, close, focus, blur, hover }
 }
 
 // `value` moved toward `target` by at most `step`.

@@ -20,16 +20,20 @@ export function chamferBox(p: Node<'vec2'>, half: Node<'vec2'>, cut: Node<'float
   return max(max(q.x, q.y), q.x.add(q.y).add(cut).mul(Math.SQRT1_2))
 }
 
+// The size of one pixel in `d`. Never 0: on the ridges of a box, where two sides are equally
+// near, fwidth can be 0, and smoothstep with equal edges is undefined (black dots).
+const pixelOf = (d: Node<'float'>) => max(fwidth(d), 1e-5)
+
 // How much of the pixel is inside: 1 inside, 0 outside, antialiased over one pixel.
 export function fill(d: Node<'float'>) {
-  const pixel = fwidth(d)
+  const pixel = pixelOf(d)
   // Edges in increasing order: GLSL leaves smoothstep undefined otherwise.
   return smoothstep(pixel.negate(), pixel, d).oneMinus()
 }
 
 // A line of the given width that runs `inset` inside the outline, antialiased.
 export function line(d: Node<'float'>, inset: Node<'float'>, width: Node<'float'>) {
-  const pixel = fwidth(d)
+  const pixel = pixelOf(d)
   const half = width.mul(0.5)
   return smoothstep(half, half.add(pixel), abs(d.add(inset).add(half))).oneMinus()
 }

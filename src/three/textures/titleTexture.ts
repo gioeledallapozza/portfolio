@@ -41,16 +41,17 @@ export function createTitleTexture(text: string, width: number) {
   texture.anisotropy = 4
   live.set(texture, text)
   texture.addEventListener('dispose', () => live.delete(texture))
-  draw(texture, text)
+  drawTitle(texture, text)
   return texture
 }
 
 // Draws every live title again, after a change to titleStyle.
 export function redrawTitles() {
-  live.forEach((text, texture) => draw(texture, text))
+  live.forEach((text, texture) => drawTitle(texture, text))
 }
 
-function draw(texture: CanvasTexture, title: string) {
+// Draws `title` on its texture; the entrance's glitch (F-35) draws its passing strings with it.
+export function drawTitle(texture: CanvasTexture, title: string) {
   const canvas = texture.image as HTMLCanvasElement
   const context = canvas.getContext('2d')!
   const { width, height } = canvas

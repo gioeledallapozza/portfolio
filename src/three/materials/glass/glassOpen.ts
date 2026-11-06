@@ -43,16 +43,21 @@ export interface OpenEffect {
   frame: Node<'float'> // 1 on the screen's edges, where the glass stays once open
 }
 
+// The band of glass a pixel belongs to: six thick rows, some of them split into thin ones, so
+// the heights differ. Shared with the entrance (glassEnter), so the card mends along the same cuts.
+export function glassBand(uv: Node<'vec2'>) {
+  const thick = floor(uv.y.mul(6))
+  const thin = floor(uv.y.mul(26)).add(100)
+  return select(hash(thick).greaterThan(0.55), thin, thick)
+}
+
 // The break at `open`: bands of different heights slide left and right, colours split, noise
 // blocks flicker, scanlines flash, and each band of glass vanishes at its own moment.
 export function glassOpen(uv: Node<'vec2'>, open: Node<'float'>): OpenEffect {
   // 0 at rest and when fully open, 1 halfway: the moments that must show a clean card stay clean.
   const burst = sin(open.mul(PI))
 
-  // Bands: six thick rows, some of them split into thin ones, so the heights differ.
-  const thick = floor(uv.y.mul(6))
-  const thin = floor(uv.y.mul(26)).add(100)
-  const band = select(hash(thick).greaterThan(0.55), thin, thick)
+  const band = glassBand(uv)
   // Alternate directions, each band with its own distance.
   const side = band.mod(2).mul(2).sub(1)
   const slide = side
